@@ -1,0 +1,1447 @@
+<!DOCTYPE html>
+<html lang="sq">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Buxheti">
+<meta name="theme-color" content="#0a0a0a">
+<link rel="manifest" href="./manifest.json">
+<title>Buxheti Familjar</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#0a0a0a;--bg2:#161616;--bg3:#1f1f1f;--border:#2a2a2a;
+  --text:#f5f5f5;--text-dim:#8a8a8a;--text-dim2:#5e5e5e;
+  --green:#3ecf6e;--red:#ef4444;--blue:#3b82f6;--yellow:#f4d35e;
+  --orange:#f97316;--purple:#a78bfa;
+  --safe-top:env(safe-area-inset-top,0px);--safe-bot:env(safe-area-inset-bottom,0px);
+}
+html,body{height:100%;overflow:hidden;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);display:flex;flex-direction:column;height:100dvh;}
+
+/* LOGIN SCREEN */
+.login-screen{position:fixed;inset:0;background:var(--bg);z-index:500;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px 24px;}
+.login-logo{font-size:56px;margin-bottom:16px;}
+.login-title{font-size:26px;font-weight:800;margin-bottom:6px;}
+.login-sub{font-size:14px;color:var(--text-dim);margin-bottom:40px;text-align:center;}
+.login-card{background:var(--bg2);border:1px solid var(--border);border-radius:20px;padding:24px;width:100%;max-width:360px;}
+.login-tab-row{display:flex;background:var(--bg3);border-radius:10px;padding:3px;margin-bottom:20px;}
+.login-tab{flex:1;text-align:center;padding:9px;border-radius:8px;font-size:13.5px;font-weight:600;color:var(--text-dim);cursor:pointer;}
+.login-tab.active{background:var(--blue);color:#fff;}
+.login-field{width:100%;background:var(--bg3);border:1.5px solid var(--border);color:var(--text);border-radius:10px;padding:13px;font-size:16px;margin-bottom:12px;}
+.login-field:focus{outline:none;border-color:var(--blue);}
+.login-btn{width:100%;background:var(--blue);color:#fff;border:none;border-radius:12px;padding:14px;font-size:16px;font-weight:700;cursor:pointer;margin-top:4px;}
+.login-btn.green{background:var(--green);color:#000;}
+.login-divider{text-align:center;color:var(--text-dim2);font-size:12px;margin:16px 0;}
+.family-code-display{background:var(--bg3);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center;margin-bottom:12px;}
+.family-code-lbl{font-size:11px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;}
+.family-code-val{font-size:34px;font-weight:800;letter-spacing:8px;color:var(--green);}
+.family-code-copy{background:none;border:none;color:var(--blue);font-size:13px;font-weight:600;margin-top:8px;cursor:pointer;display:block;width:100%;}
+
+/* SYNC BANNER */
+.sync-bar{background:var(--bg2);border-bottom:1px solid var(--border);padding:8px 16px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+.sync-dot{width:8px;height:8px;border-radius:50%;background:var(--green);margin-right:6px;animation:pulse 2s infinite;}
+.sync-dot.offline{background:var(--red);animation:none;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.4;}}
+.sync-info{display:flex;align-items:center;font-size:12px;color:var(--text-dim);}
+.sync-family{font-size:12px;font-weight:600;color:var(--text-dim);}
+.sync-leave{background:none;border:none;color:var(--red);font-size:11px;cursor:pointer;}
+
+/* NOTIFICATION BANNER */
+.notif-banner{margin:8px 16px 0;border-radius:12px;padding:11px 14px;font-size:12.5px;display:flex;align-items:center;gap:10px;line-height:1.4;}
+.notif-banner.warn{background:#2a1f00;border:1px solid #5a3f00;color:#fbbf24;}
+.notif-banner.danger{background:#2a1515;border:1px solid #5a2020;color:#f87171;}
+.notif-banner.ok{background:#0f2a1a;border:1px solid #1a5a30;color:#4ade80;}
+.notif-icon{font-size:18px;flex-shrink:0;}
+.notif-x{background:none;border:none;color:inherit;font-size:16px;margin-left:auto;cursor:pointer;opacity:0.7;}
+
+/* PAGES */
+.page{display:none;flex:1;overflow-y:auto;}
+.page.active{display:block;}
+.page::-webkit-scrollbar{width:0;}
+.content{padding:calc(var(--safe-top) + 14px) 16px 90px;}
+
+/* TOP BAR */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding-bottom:18px;}
+.topbar-icon{width:38px;height:38px;display:flex;align-items:center;justify-content:center;color:var(--text-dim);}
+.topbar-icon svg{width:22px;height:22px;}
+.topbar-title{font-size:15px;font-weight:600;color:var(--text-dim);}
+.topbar-right{display:flex;gap:6px;}
+
+/* BALANCE CARD */
+.balance-card{background:var(--bg2);border-radius:18px;padding:20px;margin-bottom:14px;border:1px solid var(--border);}
+.balance-label{font-size:13px;color:var(--text-dim);}
+.balance-amt{font-size:30px;font-weight:700;margin:6px 0 18px;}
+.balance-split{display:flex;justify-content:space-between;}
+.bsplit-item{flex:1;}
+.bsplit-lbl{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-dim);margin-bottom:4px;}
+.bsplit-val{font-size:17px;font-weight:700;}
+.dot{width:8px;height:8px;border-radius:50%;}
+
+/* WHO ADDED */
+.who-badge{display:inline-flex;align-items:center;gap:4px;background:var(--bg3);border-radius:99px;padding:2px 8px;font-size:10px;color:var(--text-dim);margin-left:4px;}
+
+/* TX LIST */
+.search-bar{display:flex;align-items:center;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:11px 14px;margin-bottom:14px;gap:8px;}
+.search-bar input{background:none;border:none;color:var(--text);font-size:13px;flex:1;outline:none;}
+.section-label{font-size:11px;font-weight:700;color:var(--text-dim2);text-transform:uppercase;letter-spacing:0.8px;margin:16px 0 8px;padding:0 2px;}
+.tx-day-hdr{display:flex;justify-content:space-between;align-items:center;padding:8px 2px 6px;font-size:12.5px;color:var(--text-dim);}
+.tx-day-amts{display:flex;gap:8px;font-weight:600;}
+.tx-item{display:flex;align-items:center;gap:12px;padding:11px 4px;border-bottom:1px solid var(--border);}
+.tx-icon{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0;}
+.tx-info{flex:1;min-width:0;}
+.tx-name{font-size:14px;font-weight:500;}
+.tx-sub{font-size:11px;color:var(--text-dim);margin-top:1px;}
+.tx-amt{font-size:14.5px;font-weight:700;white-space:nowrap;}
+.tx-amt.income{color:var(--green);}
+.tx-amt.expense{color:var(--red);}
+.tx-del{background:none;border:none;color:var(--text-dim2);font-size:20px;padding:2px 4px;}
+.empty{text-align:center;padding:50px 20px;color:var(--text-dim);}
+.empty-icon{font-size:38px;margin-bottom:10px;opacity:0.5;}
+.empty-text{font-size:13.5px;}
+
+/* BUDGET ALERT PROGRESS */
+.budget-alert-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:14px 16px;margin-bottom:10px;}
+.budget-alert-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.budget-alert-name{font-size:13.5px;font-weight:700;}
+.budget-alert-pct{font-size:12px;font-weight:700;}
+.budget-prog-track{background:var(--bg3);border-radius:99px;height:8px;}
+.budget-prog-fill{height:100%;border-radius:99px;transition:width 0.4s;}
+.budget-nums{display:flex;justify-content:space-between;font-size:11px;color:var(--text-dim);margin-top:5px;}
+
+/* CHART */
+.pill-tabs{display:flex;background:var(--bg2);border-radius:12px;padding:3px;margin-bottom:14px;}
+.pill-tab{flex:1;text-align:center;padding:10px 4px;border-radius:9px;font-size:13px;font-weight:600;color:var(--text-dim);cursor:pointer;}
+.pill-tab.active{background:#fff;color:#000;}
+.chart-months{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:14px;}
+.chart-months::-webkit-scrollbar{display:none;}
+.cm-item{flex-shrink:0;text-align:center;min-width:54px;padding:8px 4px;border-radius:10px;cursor:pointer;}
+.cm-item.active{background:var(--bg2);border:1px solid var(--border);}
+.cm-year{font-size:10px;color:var(--text-dim2);}
+.cm-num{font-size:15px;font-weight:600;}
+.donut-card{background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:20px;margin-bottom:14px;}
+.donut-title{text-align:center;font-size:15px;font-weight:700;margin-bottom:16px;}
+.donut-wrap{display:flex;justify-content:center;margin-bottom:18px;}
+.legend{display:flex;flex-direction:column;gap:10px;}
+.legend-row{display:flex;align-items:center;justify-content:space-between;font-size:13px;}
+.legend-left{display:flex;align-items:center;gap:10px;}
+.legend-pct{font-weight:700;}
+
+/* CARDS */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:12px;}
+.card-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+.card-title{font-size:14.5px;font-weight:700;}
+.prog-row{margin-bottom:14px;}
+.prog-row:last-child{margin-bottom:0;}
+.prog-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;}
+.prog-name{font-size:13.5px;font-weight:600;}
+.prog-track{background:var(--bg3);border-radius:99px;height:7px;overflow:hidden;}
+.prog-fill{height:100%;border-radius:99px;}
+.prog-pct{font-size:11px;color:var(--text-dim);margin-top:4px;text-align:right;}
+
+/* DEBT */
+.debt-total{font-size:26px;font-weight:700;margin:14px 0 16px;}
+.debt-split{display:flex;background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:16px;}
+.debt-split-item{flex:1;}
+.debt-split-lbl{font-size:12.5px;color:var(--text-dim);margin-bottom:6px;display:flex;align-items:center;gap:6px;}
+.debt-split-val{font-size:18px;font-weight:700;}
+.debt-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:10px;}
+.debt-hdr{display:flex;align-items:center;gap:12px;margin-bottom:10px;}
+.debt-avatar{width:42px;height:42px;border-radius:50%;border:2px solid var(--orange);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;color:var(--orange);flex-shrink:0;}
+.debt-name{font-size:15px;font-weight:700;}
+.debt-meta{font-size:11.5px;color:var(--text-dim);margin-top:1px;}
+.debt-amt{font-weight:700;color:var(--green);font-size:15px;margin-left:auto;}
+.debt-actions{display:flex;gap:6px;}
+.debt-prog-track{background:var(--bg3);border-radius:99px;height:7px;}
+.debt-prog-fill{height:100%;border-radius:99px;background:var(--orange);}
+.goal-card{padding:12px 0;border-bottom:1px solid var(--border);}
+.goal-card:last-child{border-bottom:none;}
+.goal-icon{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.goal-track{background:var(--bg3);border-radius:99px;height:6px;margin:4px 0;}
+.goal-fill{height:100%;border-radius:99px;}
+.goal-nums{display:flex;justify-content:space-between;font-size:11px;color:var(--text-dim);}
+.goal-add-row{display:flex;gap:6px;margin-top:8px;}
+.goal-add-inp{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-size:12.5px;color:var(--text);}
+.goal-add-btn{background:var(--green);color:#000;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:700;cursor:pointer;}
+
+/* SETTINGS */
+.settings-row{display:flex;align-items:center;justify-content:space-between;padding:14px 4px;border-bottom:1px solid var(--border);}
+.settings-row:last-child{border-bottom:none;}
+.settings-label{font-size:14px;font-weight:500;}
+.settings-sub{font-size:11.5px;color:var(--text-dim);margin-top:2px;}
+.settings-val{font-size:14px;font-weight:600;color:var(--blue);}
+.edit-link{background:none;border:none;color:var(--blue);font-size:13px;font-weight:600;cursor:pointer;}
+.del-link{background:none;border:none;color:var(--red);font-size:18px;cursor:pointer;}
+
+/* MEMBER CHIPS */
+.member-list{display:flex;flex-direction:column;gap:8px;margin-bottom:12px;}
+.member-row{display:flex;align-items:center;gap:10px;background:var(--bg3);border-radius:10px;padding:10px 12px;}
+.member-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#fff;flex-shrink:0;}
+.member-name{flex:1;font-size:13.5px;font-weight:600;}
+.member-role{font-size:11px;color:var(--text-dim);}
+.member-online{width:8px;height:8px;border-radius:50%;background:var(--green);}
+.member-offline{width:8px;height:8px;border-radius:50%;background:var(--text-dim2);}
+
+/* FAB */
+.fab{position:fixed;bottom:calc(var(--safe-bot) + 70px);left:50%;transform:translateX(-50%);width:54px;height:54px;border-radius:50%;background:var(--blue);color:#fff;border:none;font-size:26px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 18px rgba(59,130,246,0.45);z-index:60;}
+.fab:active{transform:translateX(-50%) scale(0.92);}
+
+/* NAV */
+.nav{background:var(--bg2);border-top:1px solid var(--border);display:flex;padding:8px 0 calc(var(--safe-bot) + 8px);flex-shrink:0;order:99;}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;color:var(--text-dim2);font-size:10px;padding:4px 2px;cursor:pointer;}
+.nav-btn.active{color:var(--blue);}
+.nav-btn svg{width:21px;height:21px;}
+.nav-spacer{width:54px;flex-shrink:0;}
+
+/* MODALS */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:100;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.2s;}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal{background:var(--bg2);border-radius:20px 20px 0 0;padding:0 0 calc(var(--safe-bot) + 16px);width:100%;max-height:92dvh;overflow-y:auto;transform:translateY(100%);transition:transform 0.25s cubic-bezier(.4,0,.2,1);border-top:1px solid var(--border);}
+.modal-overlay.open .modal{transform:translateY(0);}
+.modal-handle{width:36px;height:4px;background:var(--border);border-radius:99px;margin:12px auto 4px;}
+.modal-title{font-size:17px;font-weight:700;padding:10px 20px 14px;border-bottom:1px solid var(--border);}
+.modal-body{padding:16px 20px;}
+.field-group{margin-bottom:14px;}
+.field-label{font-size:12px;font-weight:600;color:var(--text-dim);margin-bottom:6px;display:block;}
+.field-input{width:100%;border:1.5px solid var(--border);background:var(--bg3);color:var(--text);border-radius:10px;padding:12px 13px;font-size:15px;appearance:none;-webkit-appearance:none;}
+.field-input:focus{outline:none;border-color:var(--blue);}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+select.field-input{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24'%3E%3Cpath fill='%238a8a8a' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;}
+.chips{display:flex;flex-wrap:wrap;gap:8px;}
+.chip{padding:9px 16px;border-radius:10px;font-size:13.5px;font-weight:600;border:1.5px solid var(--border);background:var(--bg3);color:var(--text-dim);cursor:pointer;flex:1;text-align:center;}
+.chip.selected.expense-sel{border-color:var(--red);background:#2a1515;color:var(--red);}
+.chip.selected.income-sel{border-color:var(--green);background:#13261a;color:var(--green);}
+.icon-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-top:8px;}
+.icon-opt{aspect-ratio:1;border-radius:10px;background:var(--bg3);border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;}
+.icon-opt.selected{border-color:var(--blue);background:#15233b;}
+.btn-primary{width:100%;background:var(--blue);color:#fff;border:none;border-radius:12px;padding:14px;font-size:16px;font-weight:700;cursor:pointer;margin-top:6px;}
+.btn-green{background:var(--green);color:#000;}
+.btn-secondary{width:100%;background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:12px;padding:13px;font-size:14.5px;font-weight:600;cursor:pointer;margin-top:8px;}
+.toast{position:fixed;bottom:calc(var(--safe-bot) + 90px);left:50%;transform:translateX(-50%) translateY(20px);background:#fff;color:#000;padding:10px 20px;border-radius:99px;font-size:13px;font-weight:600;z-index:300;opacity:0;transition:all 0.25s;pointer-events:none;white-space:nowrap;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+.month-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.month-opt{padding:13px 6px;border-radius:10px;text-align:center;font-size:13.5px;font-weight:500;border:1.5px solid var(--border);background:var(--bg3);color:var(--text);cursor:pointer;}
+.month-opt.active{border-color:var(--blue);background:#15233b;color:var(--blue);font-weight:700;}
+.month-opt.has-data{position:relative;}
+.month-opt.has-data::after{content:'';position:absolute;bottom:6px;left:50%;transform:translateX(-50%);width:5px;height:5px;border-radius:50%;background:var(--green);}
+.year-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.year-btn{background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:7px 16px;font-size:16px;cursor:pointer;}
+.year-label{font-size:18px;font-weight:700;}
+.col-dot{width:28px;height:28px;border-radius:50%;cursor:pointer;border:2px solid transparent;}
+.col-dot.selected{border-color:#fff;}
+.notif-setting-row{display:flex;align-items:center;justify-content:space-between;padding:12px 4px;border-bottom:1px solid var(--border);}
+.toggle{width:44px;height:26px;border-radius:99px;background:var(--bg3);border:1px solid var(--border);position:relative;cursor:pointer;transition:background 0.2s;}
+.toggle.on{background:var(--green);}
+.toggle::after{content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform 0.2s;}
+.toggle.on::after{transform:translateX(18px);}
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-logo">💰</div>
+  <div class="login-title">Buxheti Familjar</div>
+  <div class="login-sub">Menaxhoni financat familjare<br>bashkërisht, në kohë reale</div>
+  <div class="login-card">
+    <div class="login-tab-row">
+      <div class="login-tab active" id="ltab-create" onclick="setLoginTab('create')">Krijo Familje</div>
+      <div class="login-tab" id="ltab-join" onclick="setLoginTab('join')">Bashkohu</div>
+    </div>
+
+    <!-- CREATE -->
+    <div id="loginCreate">
+      <input class="login-field" id="createName" placeholder="Emri juaj (p.sh. Elis)" maxlength="20"/>
+      <button class="login-btn" onclick="createFamily()">🏠 Krijo Familjen</button>
+      <div class="login-divider">― ose ―</div>
+      <div class="family-code-display" id="newCodeBox" style="display:none;">
+        <div class="family-code-lbl">Kodi i Familjes</div>
+        <div class="family-code-val" id="newCodeVal">——</div>
+        <button class="family-code-copy" onclick="copyFamilyCode()">📋 Kopjo kodin</button>
+      </div>
+    </div>
+
+    <!-- JOIN -->
+    <div id="loginJoin" style="display:none;">
+      <input class="login-field" id="joinName" placeholder="Emri juaj (p.sh. Rauf)" maxlength="20"/>
+      <input class="login-field" id="joinCode" placeholder="Kodi 6-shifror i familjes" maxlength="6" style="text-align:center;font-size:22px;font-weight:700;letter-spacing:6px;" oninput="this.value=this.value.toUpperCase()"/>
+      <button class="login-btn green" onclick="joinFamily()">🔗 Bashkohu Familjes</button>
+    </div>
+  </div>
+</div>
+
+<!-- SYNC BAR -->
+<div class="sync-bar" id="syncBar" style="display:none;">
+  <div class="sync-info">
+    <div class="sync-dot" id="syncDot"></div>
+    <span id="syncStatus">Duke u lidhur...</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:12px;">
+    <span class="sync-family" id="syncFamilyCode"></span>
+    <button class="sync-leave" onclick="leaveFamily()">Dil</button>
+  </div>
+</div>
+
+<!-- NOTIFICATIONS -->
+<div id="notifContainer"></div>
+
+<!-- PAGES -->
+<div class="page active" id="page-home">
+  <div class="content">
+    <div class="topbar">
+      <div class="topbar-icon" onclick="switchTab('settings')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </div>
+      <div class="topbar-title" id="homeMonthLabel">Buxheti</div>
+      <div class="topbar-right">
+        <div class="topbar-icon" onclick="refreshApp()" id="refreshBtn" title="Rifresko">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/></svg>
+        </div>
+        <div class="topbar-icon" id="installBtn" onclick="installPWA()" title="Instalo" style="display:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        </div>
+        <div class="topbar-icon" onclick="openMonthModal()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        </div>
+      </div>
+    </div>
+    <div class="balance-card">
+      <div class="balance-label">Bilanci Total</div>
+      <div class="balance-amt" id="hBalance">0 ALL</div>
+      <div class="balance-split">
+        <div class="bsplit-item">
+          <div class="bsplit-lbl"><span class="dot" style="background:var(--green)"></span>Të Ardhura</div>
+          <div class="bsplit-val" style="color:var(--green)" id="hIncome">0 ALL</div>
+        </div>
+        <div class="bsplit-item">
+          <div class="bsplit-lbl"><span class="dot" style="background:var(--red)"></span>Shpenzime</div>
+          <div class="bsplit-val" style="color:var(--red)" id="hExpenses">0 ALL</div>
+        </div>
+      </div>
+    </div>
+    <div class="search-bar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" style="flex-shrink:0;color:var(--text-dim)"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input id="searchInput" placeholder="Kërko në transaksione" oninput="renderHome()"/>
+    </div>
+    <div id="homeTxList"></div>
+  </div>
+</div>
+
+<div class="page" id="page-debt">
+  <div class="content">
+    <div class="topbar">
+      <div class="topbar-icon" onclick="switchTab('settings')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></div>
+      <div class="topbar-title">Kredi & Këste</div>
+      <div style="width:38px"></div>
+    </div>
+    <div class="debt-total" id="debtTotal">0 ALL</div>
+    <div class="debt-split">
+      <div class="debt-split-item">
+        <div class="debt-split-lbl"><span class="dot" style="background:var(--green)"></span>Paguar</div>
+        <div class="debt-split-val" id="lentVal">0</div>
+      </div>
+      <div class="debt-split-item">
+        <div class="debt-split-lbl"><span class="dot" style="background:var(--orange)"></span>Mbetur</div>
+        <div class="debt-split-val" id="borrowVal">0</div>
+      </div>
+    </div>
+    <div id="loansList"></div>
+  </div>
+</div>
+
+<div class="page" id="page-chart">
+  <div class="content">
+    <div class="topbar">
+      <div class="topbar-icon" onclick="switchTab('settings')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></div>
+      <div class="topbar-title" id="chartMonthLabel">Grafiku</div>
+      <div class="topbar-icon" onclick="openMonthModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div>
+    </div>
+    <div class="chart-months" id="chartMonthsStrip"></div>
+    <div class="pill-tabs">
+      <div class="pill-tab active" id="chartTabExp" onclick="setChartType('expense')">Shpenzime</div>
+      <div class="pill-tab" id="chartTabInc" onclick="setChartType('income')">Të Ardhura</div>
+    </div>
+    <div class="donut-card">
+      <div class="donut-title" id="donutTitle">Total: 0 ALL</div>
+      <div class="donut-wrap"><svg id="donutSvg" width="220" height="220" viewBox="0 0 220 220"></svg></div>
+      <div class="legend" id="donutLegend"></div>
+    </div>
+  </div>
+</div>
+
+<div class="page" id="page-planner">
+  <div class="content">
+    <div class="topbar">
+      <div class="topbar-icon" onclick="switchTab('settings')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg></div>
+      <div class="topbar-title">Planifikuesi</div>
+      <div style="width:38px"></div>
+    </div>
+    <div class="section-label">📊 Buxhetet sipas Kategorisë</div>
+    <div id="budgetAlertCards"></div>
+    <button style="background:none;border:none;color:var(--blue);font-size:13.5px;font-weight:600;margin-bottom:16px;cursor:pointer;" onclick="openAddBudgetModal()">+ Shto buxhet kategorie</button>
+    <div class="card">
+      <div class="card-hdr">
+        <div class="card-title">🎯 Qëllimet e Kursimit</div>
+        <button style="background:none;border:none;color:var(--blue);font-size:13px;font-weight:600;cursor:pointer;" onclick="openAddSavingModal()">+ Shto</button>
+      </div>
+      <div id="goalsList"></div>
+    </div>
+    <div class="section-label">🏦 Kredi - Përmbledhje</div>
+    <div class="card" id="plannerLoansSummary"></div>
+  </div>
+</div>
+
+<div class="page" id="page-settings">
+  <div class="content">
+    <div class="topbar">
+      <div style="width:38px"></div>
+      <div class="topbar-title">Cilësimet</div>
+      <div style="width:38px"></div>
+    </div>
+
+    <div class="section-label">👨‍👩‍👧‍👦 Familja</div>
+    <div class="card">
+      <div class="settings-row">
+        <div><div class="settings-label">Kodi i Familjes</div><div class="settings-sub" id="settingsFamilyCode">—</div></div>
+        <button class="edit-link" onclick="copyFamilyCode()">📋 Kopjo</button>
+      </div>
+      <div id="memberListSettings"></div>
+    </div>
+
+    <div class="section-label">🔔 Njoftimet</div>
+    <div class="card" id="notifSettingsCard">
+      <div class="notif-setting-row">
+        <div><div class="settings-label">Njoftimet e Buxhetit</div><div class="settings-sub">Alert kur kalon 80% të limitit</div></div>
+        <div class="toggle on" id="toggleBudget" onclick="toggleNotif('budget')"></div>
+      </div>
+      <div class="notif-setting-row">
+        <div><div class="settings-label">Limit i arritur (100%)</div><div class="settings-sub">Alert kur buxheti është tejkaluar</div></div>
+        <div class="toggle on" id="toggleLimit" onclick="toggleNotif('limit')"></div>
+      </div>
+      <div class="notif-setting-row">
+        <div><div class="settings-label">Push Notifications</div><div class="settings-sub">Njoftim edhe kur app-i është i mbyllur</div></div>
+        <div class="toggle" id="togglePush" onclick="requestPushNotif()"></div>
+      </div>
+    </div>
+
+    <div class="section-label">💰 Të Ardhurat & Kategoritë</div>
+    <div class="card">
+      <div class="settings-row">
+        <div><div class="settings-label">Të ardhura mujore (bazë)</div><div class="settings-sub" id="incomeSettingsVal">225,000 ALL</div></div>
+        <button class="edit-link" onclick="openIncomeModal()">Ndrysho</button>
+      </div>
+      <div class="settings-row" onclick="openManageCatsModal()" style="cursor:pointer;">
+        <div><div class="settings-label">🏷️ Kategoritë e Shpenzimeve</div><div class="settings-sub" id="catCountLbl">13 aktive</div></div>
+        <span style="color:var(--text-dim)">›</span>
+      </div>
+      <div class="settings-row" onclick="openManageIncomeSrcModal()" style="cursor:pointer;">
+        <div><div class="settings-label">💼 Burimet e të Ardhurave</div><div class="settings-sub" id="srcCountLbl">5 aktive</div></div>
+        <span style="color:var(--text-dim)">›</span>
+      </div>
+    </div>
+
+    <div class="section-label">📅 Muajt me të dhëna</div>
+    <div class="card" id="monthsWithData"></div>
+
+    <div class="section-label">💾 Të dhënat</div>
+    <div class="card">
+      <div class="settings-row" onclick="exportData()" style="cursor:pointer;">
+        <div><div class="settings-label">📤 Backup</div><div class="settings-sub">Eksporto të dhënat</div></div>
+        <span style="color:var(--text-dim)">›</span>
+      </div>
+      <div class="settings-row" onclick="confirmReset()" style="cursor:pointer;">
+        <div><div class="settings-label" style="color:var(--red)">🗑️ Fshi të gjitha</div><div class="settings-sub">Nuk mund të zhbëhet</div></div>
+        <span style="color:var(--text-dim)">›</span>
+      </div>
+    </div>
+    <div style="text-align:center;padding:24px 0;color:var(--text-dim2);font-size:11px;">Buxheti Familjar v3.0 · Firebase Sync</div>
+  </div>
+</div>
+
+<button class="fab" id="fabBtn" onclick="openFAB()">+</button>
+
+<nav class="nav">
+  <button class="nav-btn active" id="nav-home" onclick="switchTab('home')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Ballina
+  </button>
+  <button class="nav-btn" id="nav-debt" onclick="switchTab('debt')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>Kredi
+  </button>
+  <div class="nav-spacer"></div>
+  <button class="nav-btn" id="nav-chart" onclick="switchTab('chart')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.21 15.89A10 10 0 118 2.83"/><path d="M22 12A10 10 0 0012 2v10z"/></svg>Grafiku
+  </button>
+  <button class="nav-btn" id="nav-planner" onclick="switchTab('planner')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>Plani
+  </button>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="monthModal"><div class="modal"><div class="modal-handle"></div><div class="modal-title">Zgjidh Muajin</div><div class="modal-body"><div class="year-row"><button class="year-btn" onclick="changeYear(-1)">‹</button><span class="year-label" id="yearDisplay">2026</span><button class="year-btn" onclick="changeYear(1)">›</button></div><div class="month-grid" id="monthGrid"></div><button class="btn-secondary" onclick="closeModal('monthModal')">Mbyll</button></div></div></div>
+
+<div class="modal-overlay" id="txModal">
+  <div class="modal"><div class="modal-handle"></div><div class="modal-title">Shto Transaksion</div>
+  <div class="modal-body">
+    <div class="field-group"><div class="chips" id="txTypeChips">
+      <div class="chip selected expense-sel" onclick="selectTxType('shpenzim',this)">💸 Shpenzim</div>
+      <div class="chip" onclick="selectTxType('ardhur',this)">💰 Të ardhura</div>
+    </div></div>
+    <div class="field-group"><label class="field-label">Emri</label><input class="field-input" id="txName" placeholder="p.sh. Supermarket"/></div>
+    <div class="field-row">
+      <div class="field-group"><label class="field-label">Shuma (ALL)</label><input class="field-input" id="txAmount" type="number" inputmode="numeric" placeholder="0"/></div>
+      <div class="field-group"><label class="field-label">Data</label><input class="field-input" id="txDate" type="date"/></div>
+    </div>
+    <div class="field-group" id="catFieldGroup">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <label class="field-label" style="margin:0;">Kategoria</label>
+        <button style="background:none;border:none;color:var(--blue);font-size:12px;font-weight:600;cursor:pointer;" onclick="openManageCatsModal()">⚙ Menaxho</button>
+      </div>
+      <select class="field-input" id="txCat"></select>
+    </div>
+    <div class="field-group" id="incomeSourceGroup" style="display:none;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+        <label class="field-label" style="margin:0;">Burimi i të Ardhurave</label>
+        <button style="background:none;border:none;color:var(--green);font-size:12px;font-weight:600;cursor:pointer;" onclick="openManageIncomeSrcModal()">⚙ Menaxho</button>
+      </div>
+      <select class="field-input" id="txIncomeSrc"></select>
+    </div>
+    <div class="field-group"><label class="field-label">Shënim (opsional)</label><input class="field-input" id="txNote" placeholder="p.sh. Goma"/></div>
+    <button class="btn-primary" onclick="saveTx()">Ruaj</button>
+    <button class="btn-secondary" onclick="closeModal('txModal')">Anulo</button>
+  </div></div>
+</div>
+
+<div class="modal-overlay" id="loanModal">
+  <div class="modal"><div class="modal-handle"></div><div class="modal-title" id="loanModalTitle">Shto Kredi</div>
+  <div class="modal-body">
+    <div class="field-group"><label class="field-label">Emri</label><input class="field-input" id="loanName" placeholder="Raufi"/></div>
+    <div class="field-row">
+      <div class="field-group"><label class="field-label">Shuma Totale</label><input class="field-input" id="loanTotal" type="number" inputmode="numeric"/></div>
+      <div class="field-group"><label class="field-label">E Paguar</label><input class="field-input" id="loanPaid" type="number" inputmode="numeric"/></div>
+    </div>
+    <div class="field-row">
+      <div class="field-group"><label class="field-label">Kësti Mujor</label><input class="field-input" id="loanMonthly" type="number" inputmode="numeric"/></div>
+      <div class="field-group"><label class="field-label">Data Pagesës</label><input class="field-input" id="loanDate" type="date"/></div>
+    </div>
+    <input type="hidden" id="loanEditId"/>
+    <button class="btn-primary" onclick="saveLoan()">Ruaj</button>
+    <button class="btn-secondary" onclick="closeModal('loanModal')">Anulo</button>
+  </div></div>
+</div>
+
+<div class="modal-overlay" id="savingModal">
+  <div class="modal"><div class="modal-handle"></div><div class="modal-title" id="savingModalTitle">Shto Qëllim</div>
+  <div class="modal-body">
+    <div class="field-group"><label class="field-label">Emri</label><input class="field-input" id="savName"/></div>
+    <div class="field-group"><label class="field-label">Ikona</label><div class="icon-grid" id="savIconGrid"></div><input type="hidden" id="savIcon" value="🎯"/></div>
+    <div class="field-row">
+      <div class="field-group"><label class="field-label">Qëllimi (ALL)</label><input class="field-input" id="savGoal" type="number" inputmode="numeric"/></div>
+      <div class="field-group"><label class="field-label">Kursyer (ALL)</label><input class="field-input" id="savCurrent" type="number" inputmode="numeric"/></div>
+    </div>
+    <input type="hidden" id="savEditId"/>
+    <button class="btn-primary btn-green" onclick="saveSaving()">Ruaj</button>
+    <button class="btn-secondary" onclick="closeModal('savingModal')">Anulo</button>
+  </div></div>
+</div>
+
+<div class="modal-overlay" id="budgetModal">
+  <div class="modal"><div class="modal-handle"></div><div class="modal-title">Shto Buxhet Kategorie</div>
+  <div class="modal-body">
+    <div class="field-group"><label class="field-label">Kategoria</label><select class="field-input" id="budgetCat"></select></div>
+    <div class="field-group"><label class="field-label">Limiti Mujor (ALL)</label><input class="field-input" id="budgetLimit" type="number" inputmode="numeric"/></div>
+    <div class="field-group"><label class="field-label">Alert kur shpenzimet arrijnë (%)</label>
+      <select class="field-input" id="budgetAlertPct">
+        <option value="70">70% — Paralajmërim i hershëm</option>
+        <option value="80" selected>80% — Rekomanduar</option>
+        <option value="90">90% — Paralajmërim i vonuar</option>
+      </select>
+    </div>
+    <button class="btn-primary" onclick="saveBudget()">Ruaj</button>
+    <button class="btn-secondary" onclick="closeModal('budgetModal')">Anulo</button>
+  </div></div>
+</div>
+
+<div class="modal-overlay" id="incomeModal">
+  <div class="modal"><div class="modal-handle"></div><div class="modal-title">Ndrysho Të Ardhurat</div>
+  <div class="modal-body">
+    <div class="field-group"><label class="field-label">Të ardhura mujore (ALL)</label><input class="field-input" id="incomeInput" type="number" inputmode="numeric"/></div>
+    <button class="btn-primary" onclick="saveIncome()">Ruaj</button>
+    <button class="btn-secondary" onclick="closeModal('incomeModal')">Anulo</button>
+  </div></div>
+</div>
+
+<div class="modal-overlay" id="manageCatsModal">
+  <div class="modal"><div class="modal-handle"></div><div class="modal-title">🏷️ Kategoritë e Shpenzimeve</div>
+  <div class="modal-body">
+    <div id="catListUI"></div>
+    <div style="border-top:1px solid var(--border);margin:14px 0;padding-top:14px;">
+      <div class="field-label">Shto kategori të re</div>
+      <div style="display:flex;gap:8px;margin-top:6px;">
+        <input class="field-input" id="newCatIcon" placeholder="🍕" maxlength="2" style="width:58px;text-align:center;font-size:20px;flex-shrink:0;"/>
+        <input class="field-input" id="newCatName" placeholder="Emri i kategorisë..." style="flex:1;"/>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;" id="colorPicker">
+        <div class="col-dot selected" style="background:#3ecf6e;" onclick="selectColor(this,'#3ecf6e')"></div>
+        <div class="col-dot" style="background:#3b82f6;" onclick="selectColor(this,'#3b82f6')"></div>
+        <div class="col-dot" style="background:#ef4444;" onclick="selectColor(this,'#ef4444')"></div>
+        <div class="col-dot" style="background:#f97316;" onclick="selectColor(this,'#f97316')"></div>
+        <div class="col-dot" style="background:#a78bfa;" onclick="selectColor(this,'#a78bfa')"></div>
+        <div class="col-dot" style="background:#f4d35e;" onclick="selectColor(this,'#f4d35e')"></div>
+        <div class="col-dot" style="background:#14b8a6;" onclick="selectColor(this,'#14b8a6')"></div>
+        <div class="col-dot" style="background:#f472b6;" onclick="selectColor(this,'#f472b6')"></div>
+        <div class="col-dot" style="background:#60a5fa;" onclick="selectColor(this,'#60a5fa')"></div>
+        <div class="col-dot" style="background:#9ca3af;" onclick="selectColor(this,'#9ca3af')"></div>
+      </div>
+      <input type="hidden" id="newCatColor" value="#3ecf6e"/>
+      <button class="btn-primary" style="margin-top:12px;" onclick="addNewCat()">+ Shto</button>
+    </div>
+    <button class="btn-secondary" onclick="closeModal('manageCatsModal')">Mbyll</button>
+  </div></div>
+</div>
+
+<div class="modal-overlay" id="manageIncomeSrcModal">
+  <div class="modal"><div class="modal-handle"></div><div class="modal-title">💼 Burimet e të Ardhurave</div>
+  <div class="modal-body">
+    <div id="incomeSrcListUI"></div>
+    <div style="border-top:1px solid var(--border);margin:14px 0;padding-top:14px;">
+      <div class="field-label">Shto burim të ri</div>
+      <div style="display:flex;gap:8px;margin-top:6px;">
+        <input class="field-input" id="newSrcIcon" placeholder="💼" maxlength="2" style="width:58px;text-align:center;font-size:20px;flex-shrink:0;"/>
+        <input class="field-input" id="newSrcName" placeholder="p.sh. Pagë, Qera..." style="flex:1;"/>
+      </div>
+      <button class="btn-primary btn-green" style="margin-top:10px;" onclick="addNewIncomeSrc()">+ Shto</button>
+    </div>
+    <button class="btn-secondary" onclick="closeModal('manageIncomeSrcModal')">Mbyll</button>
+  </div></div>
+</div>
+
+<div class="modal-overlay" id="backupModal">
+  <div class="modal"><div class="modal-handle"></div><div class="modal-title">💾 Backup & Rivendos</div>
+  <div class="modal-body">
+    <button class="btn-primary" style="margin-bottom:8px;" onclick="doDownloadBackup()">📥 Shkarko si JSON</button>
+    <button class="btn-primary" style="background:var(--green);color:#000;margin-bottom:8px;" onclick="shareBackup()">📤 Share (WhatsApp, Email)</button>
+    <button class="btn-primary" style="background:var(--purple);margin-bottom:16px;" onclick="copyBackupText()">📋 Kopjo tekstin</button>
+    <div style="border-top:1px solid var(--border);padding-top:16px;">
+      <div class="field-label">Rivendos — Ngjit JSON këtu:</div>
+      <textarea id="backupTextarea" class="field-input" rows="4" style="font-size:11px;font-family:monospace;resize:vertical;display:block;margin-top:6px;" placeholder="Ngjit backup JSON..."></textarea>
+      <button class="btn-primary" style="background:var(--orange);margin-top:8px;" onclick="importBackup()">⬆️ Importo</button>
+    </div>
+    <button class="btn-secondary" onclick="closeModal('backupModal')">Mbyll</button>
+  </div></div>
+</div>
+
+<div class="modal-overlay" id="fabModal">
+  <div class="modal"><div class="modal-handle"></div><div class="modal-title">Çfarë doni të shtoni?</div>
+  <div class="modal-body" style="display:grid;gap:10px;padding-top:10px;">
+    <button class="btn-primary" onclick="closeModal('fabModal');openTxModal()">💸 Transaksion</button>
+    <button class="btn-primary" style="background:var(--orange);" onclick="closeModal('fabModal');openAddLoanModal()">🏦 Kredi / Borxh</button>
+    <button class="btn-primary btn-green" onclick="closeModal('fabModal');openAddSavingModal()">🎯 Qëllim Kursimi</button>
+    <button class="btn-secondary" onclick="closeModal('fabModal')">Anulo</button>
+  </div></div>
+</div>
+
+<!-- FIREBASE -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, set, get, onValue, push, remove, update, serverTimestamp }
+  from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBm_kmJzGL3-usRpUG7Su9IldxGr1fcNcs",
+  authDomain: "buxheti-51417.firebaseapp.com",
+  databaseURL: "https://buxheti-51417-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "buxheti-51417",
+  storageBucket: "buxheti-51417.firebasestorage.app",
+  messagingSenderId: "1076677438397",
+  appId: "1:1076677438397:web:7f543dec88e2d2bc3380d4"
+};
+
+const fbApp = initializeApp(firebaseConfig);
+const db = getDatabase(fbApp);
+
+// Expose Firebase helpers globally
+window._fb = { db, ref, set, get, onValue, push, remove, update, serverTimestamp };
+window._fbReady = true;
+window.dispatchEvent(new Event('fbReady'));
+</script>
+
+<script>
+// ═══════════════════════════════════════════════════════
+//  CONSTANTS & STATE
+// ═══════════════════════════════════════════════════════
+const MONTHS_AL = ['Janar','Shkurt','Mars','Prill','Maj','Qershor','Korrik','Gusht','Shtator','Tetor','Nëntor','Dhjetor'];
+const SAVING_ICONS = ['🎯','🎓','🛡️','✈️','🏡','🚗','💍','👶','🎁','💰','🏖️','📱'];
+const DEFAULT_CATS = [
+  {id:'ushqim',icon:'🍽️',label:'Ushqim & Pije',color:'#3ecf6e'},
+  {id:'qendra',icon:'🏢',label:'Shpenzime Qendra',color:'#3b82f6'},
+  {id:'makina',icon:'🚗',label:'Makina',color:'#9ca3af'},
+  {id:'karburant',icon:'⛽',label:'Karburant',color:'#a78bfa'},
+  {id:'fatura',icon:'💡',label:'Fatura',color:'#60a5fa'},
+  {id:'kredi',icon:'🏠',label:'Kredi Shtëpie',color:'#f4d35e'},
+  {id:'kesti',icon:'💳',label:'Kesti / Borxh',color:'#f97316'},
+  {id:'femije',icon:'🧸',label:'Fëmijët',color:'#ec4899'},
+  {id:'shendet',icon:'💊',label:'Shëndet',color:'#14b8a6'},
+  {id:'beauty',icon:'💇',label:'Beauty',color:'#f472b6'},
+  {id:'argetim',icon:'🎭',label:'Argëtim',color:'#f59e0b'},
+  {id:'kursim',icon:'🎯',label:'Kursim',color:'#3ecf6e'},
+  {id:'tjeter',icon:'📌',label:'Të tjera',color:'#ef4444'},
+];
+const DEFAULT_INCOME_SRCS = [
+  {id:'page',icon:'💼',label:'Pagë'},
+  {id:'qendra_inc',icon:'🏥',label:'Të ardhura Qendra'},
+  {id:'qera',icon:'🏡',label:'Qera'},
+  {id:'freelance',icon:'💻',label:'Freelance'},
+  {id:'tjeter_inc',icon:'💰',label:'Të tjera'},
+];
+
+let state = {
+  baseIncome: 225000,
+  currentYear: new Date().getFullYear(),
+  currentMonth: new Date().getMonth(),
+  transactions: [],
+  loans: [],
+  savings: [],
+  budgets: [],
+  categories: null,
+  incomeSources: null,
+  chartType: 'expense',
+  notifSettings: { budget: true, limit: true, push: false },
+  shownNotifs: {},
+};
+
+// Session (not synced)
+let session = { familyCode: null, memberName: null, memberId: null };
+let fbListeners = [];
+let isOnline = false;
+let allMembers = {};
+
+// ═══════════════════════════════════════════════════════
+//  HELPERS
+// ═══════════════════════════════════════════════════════
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+function fmt(n){ return Math.round(n).toLocaleString('sq-AL')+' ALL'; }
+function fmtNum(n){ return Math.round(n).toLocaleString('sq-AL'); }
+function monthKey(y,m){ return `${y}-${String(m+1).padStart(2,'0')}`; }
+function curKey(){ return monthKey(state.currentYear, state.currentMonth); }
+function curTxs(){
+  const k = curKey();
+  return state.transactions.filter(t=>t.date&&t.date.startsWith(k));
+}
+function getCats(){ return (state.categories&&state.categories.length)?state.categories:DEFAULT_CATS; }
+function getIncomeSrcs(){ return (state.incomeSources&&state.incomeSources.length)?state.incomeSources:DEFAULT_INCOME_SRCS; }
+function getDynCatMeta(cat){
+  const found = getCats().find(c=>c.id===cat);
+  return found || {color:'#888',icon:'📌',label:cat};
+}
+function saveLocal(){ localStorage.setItem('buxheti_v3_state', JSON.stringify(state)); }
+function loadLocal(){
+  const raw = localStorage.getItem('buxheti_v3_state');
+  if(raw) try{ state = {...state,...JSON.parse(raw)}; }catch(e){}
+}
+function loadSession(){
+  const raw = localStorage.getItem('buxheti_v3_session');
+  if(raw) try{ session = JSON.parse(raw); }catch(e){}
+}
+function saveSession(){ localStorage.setItem('buxheti_v3_session', JSON.stringify(session)); }
+
+// ═══════════════════════════════════════════════════════
+//  FIREBASE SYNC
+// ═══════════════════════════════════════════════════════
+function fbRef(path){
+  const {db, ref} = window._fb;
+  return ref(db, path);
+}
+function familyPath(sub){ return `families/${session.familyCode}/${sub}`; }
+
+function startSync(){
+  if(!session.familyCode || !window._fb) return;
+  const {onValue, ref, db} = window._fb;
+
+  // Clear old listeners
+  fbListeners.forEach(u=>u());
+  fbListeners = [];
+
+  // Listen to full family data
+  const unsubData = onValue(fbRef(familyPath('data')), snap => {
+    isOnline = true;
+    updateSyncBar(true);
+    const data = snap.val();
+    if(data){
+      if(data.transactions) state.transactions = Object.values(data.transactions);
+      else state.transactions = [];
+      if(data.loans) state.loans = Object.values(data.loans);
+      else state.loans = [];
+      if(data.savings) state.savings = Object.values(data.savings);
+      else state.savings = [];
+      if(data.budgets) state.budgets = Object.values(data.budgets);
+      else state.budgets = [];
+      if(data.categories) state.categories = data.categories;
+      if(data.incomeSources) state.incomeSources = data.incomeSources;
+      if(data.baseIncome) state.baseIncome = data.baseIncome;
+    }
+    saveLocal();
+    renderAll();
+    checkBudgetNotifications();
+  }, err => {
+    isOnline = false;
+    updateSyncBar(false);
+  });
+  fbListeners.push(unsubData);
+
+  // Listen to members
+  const unsubMembers = onValue(fbRef(familyPath('members')), snap => {
+    allMembers = snap.val() || {};
+    renderMembersSettings();
+  });
+  fbListeners.push(unsubMembers);
+
+  // Update own presence
+  updatePresence();
+  setInterval(updatePresence, 30000);
+}
+
+function updatePresence(){
+  if(!session.familyCode||!session.memberId||!window._fb) return;
+  const {set, ref, db} = window._fb;
+  set(fbRef(familyPath(`members/${session.memberId}`)), {
+    name: session.memberName,
+    lastSeen: Date.now(),
+    online: true
+  });
+}
+
+async function pushToFirebase(collection, item){
+  if(!session.familyCode||!window._fb) return;
+  const {set} = window._fb;
+  await set(fbRef(familyPath(`data/${collection}/${item.id}`)), item);
+}
+async function removeFromFirebase(collection, id){
+  if(!session.familyCode||!window._fb) return;
+  const {remove} = window._fb;
+  await remove(fbRef(familyPath(`data/${collection}/${id}`)));
+}
+async function pushSettingToFirebase(key, value){
+  if(!session.familyCode||!window._fb) return;
+  const {set} = window._fb;
+  await set(fbRef(familyPath(`data/${key}`)), value);
+}
+
+function updateSyncBar(online){
+  document.getElementById('syncDot').className = 'sync-dot' + (online?'':' offline');
+  document.getElementById('syncStatus').textContent = online ? 'Sinkronizuar' : 'Pa lidhje';
+}
+
+// ═══════════════════════════════════════════════════════
+//  LOGIN / FAMILY
+// ═══════════════════════════════════════════════════════
+function genCode(){
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = '';
+  for(let i=0;i<6;i++) code += chars[Math.floor(Math.random()*chars.length)];
+  return code;
+}
+
+function setLoginTab(tab){
+  document.getElementById('ltab-create').classList.toggle('active', tab==='create');
+  document.getElementById('ltab-join').classList.toggle('active', tab==='join');
+  document.getElementById('loginCreate').style.display = tab==='create'?'block':'none';
+  document.getElementById('loginJoin').style.display = tab==='join'?'block':'none';
+}
+
+async function createFamily(){
+  const name = document.getElementById('createName').value.trim();
+  if(!name){ toast('Shkruaj emrin tënd'); return; }
+  if(!window._fb){ toast('Duke u lidhur me server...'); return; }
+
+  const code = genCode();
+  session.familyCode = code;
+  session.memberName = name;
+  session.memberId = uid();
+  saveSession();
+
+  // Create family in Firebase
+  const {set} = window._fb;
+  await set(fbRef(`families/${code}/data`), {
+    baseIncome: state.baseIncome,
+    transactions: {},
+    loans: {},
+    savings: {},
+    budgets: {},
+  });
+  await set(fbRef(familyPath(`members/${session.memberId}`)), {
+    name, lastSeen: Date.now(), online: true, role: 'admin'
+  });
+
+  document.getElementById('newCodeBox').style.display = 'block';
+  document.getElementById('newCodeVal').textContent = code;
+  document.querySelector('.login-btn').textContent = '✅ Familja u krijua!';
+
+  setTimeout(()=> enterApp(), 1500);
+}
+
+async function joinFamily(){
+  const name = document.getElementById('joinName').value.trim();
+  const code = document.getElementById('joinCode').value.trim().toUpperCase();
+  if(!name){ toast('Shkruaj emrin tënd'); return; }
+  if(code.length!==6){ toast('Kodi duhet të jetë 6 karaktere'); return; }
+  if(!window._fb){ toast('Duke u lidhur...'); return; }
+
+  // Check if family exists
+  const {get} = window._fb;
+  const snap = await get(fbRef(`families/${code}`));
+  if(!snap.exists()){ toast('❌ Kodi nuk u gjet. Kontrollo kodin.'); return; }
+
+  session.familyCode = code;
+  session.memberName = name;
+  session.memberId = uid();
+  saveSession();
+
+  const {set} = window._fb;
+  await set(fbRef(familyPath(`members/${session.memberId}`)), {
+    name, lastSeen: Date.now(), online: true, role: 'member'
+  });
+
+  toast('✅ U bashkove me familjen!');
+  setTimeout(()=> enterApp(), 800);
+}
+
+function enterApp(){
+  document.getElementById('loginScreen').style.display = 'none';
+  document.getElementById('syncBar').style.display = 'flex';
+  document.getElementById('settingsFamilyCode').textContent = 'Kodi: ' + session.familyCode;
+  startSync();
+  renderAll();
+}
+
+function leaveFamily(){
+  if(!confirm('Dëshironi të dilni nga familja? Të dhënat mbeten në cloud.')) return;
+  fbListeners.forEach(u=>u());
+  session = {familyCode:null, memberName:null, memberId:null};
+  saveSession();
+  location.reload();
+}
+
+function copyFamilyCode(){
+  const code = session.familyCode || '';
+  if(!code) return;
+  navigator.clipboard?.writeText(code).then(()=>toast('✅ Kodi u kopjua: '+code)).catch(()=>toast('Kodi: '+code));
+}
+
+// ═══════════════════════════════════════════════════════
+//  NOTIFICATIONS
+// ═══════════════════════════════════════════════════════
+function checkBudgetNotifications(){
+  if(!state.budgets.length) return;
+  const txs = curTxs();
+  const spentByCat = {};
+  txs.filter(t=>t.type==='shpenzim').forEach(t=>{ spentByCat[t.cat]=(spentByCat[t.cat]||0)+t.amount; });
+
+  state.budgets.forEach(b=>{
+    const spent = spentByCat[b.cat]||0;
+    const pct = b.limit>0 ? (spent/b.limit)*100 : 0;
+    const alertThreshold = b.alertPct || 80;
+    const meta = getDynCatMeta(b.cat);
+    const key80 = `warn_${b.id}_${curKey()}`;
+    const key100 = `over_${b.id}_${curKey()}`;
+
+    if(pct>=100 && state.notifSettings.limit && !state.shownNotifs[key100]){
+      showNotifBanner('danger', `🚨 ${meta.icon} ${meta.label}: Buxheti u tejkalua! ${fmt(spent)} / ${fmt(b.limit)}`, key100);
+      if(state.notifSettings.push) sendPushNotif(`🚨 ${meta.label}: Tejkaluar!`, `Shpenzuar ${fmt(spent)} nga ${fmt(b.limit)}`);
+    } else if(pct>=alertThreshold && pct<100 && state.notifSettings.budget && !state.shownNotifs[key80]){
+      showNotifBanner('warn', `⚠️ ${meta.icon} ${meta.label}: ${Math.round(pct)}% e buxhetit (${fmt(spent)} / ${fmt(b.limit)})`, key80);
+      if(state.notifSettings.push) sendPushNotif(`⚠️ ${meta.label}: ${Math.round(pct)}%`, `Keni shpenzuar ${fmt(spent)} nga ${fmt(b.limit)}`);
+    }
+  });
+}
+
+function showNotifBanner(type, msg, key){
+  state.shownNotifs[key] = true;
+  saveLocal();
+  const container = document.getElementById('notifContainer');
+  const div = document.createElement('div');
+  div.className = `notif-banner ${type}`;
+  div.innerHTML = `<span class="notif-icon">${type==='danger'?'🚨':'⚠️'}</span><span style="flex:1">${msg}</span><button class="notif-x" onclick="this.parentElement.remove()">×</button>`;
+  container.appendChild(div);
+  if(type==='warn') setTimeout(()=>div.remove(), 8000);
+}
+
+function toggleNotif(type){
+  const el = document.getElementById('toggle'+type.charAt(0).toUpperCase()+type.slice(1));
+  state.notifSettings[type] = !state.notifSettings[type];
+  el.classList.toggle('on', state.notifSettings[type]);
+  saveLocal();
+  toast(state.notifSettings[type] ? '🔔 Njoftimi aktivizuar' : '🔕 Njoftimi çaktivizuar');
+}
+
+function requestPushNotif(){
+  if(!('Notification' in window)){ toast('Ky browser nuk i mbështet push notifications'); return; }
+  Notification.requestPermission().then(perm=>{
+    state.notifSettings.push = perm==='granted';
+    document.getElementById('togglePush').classList.toggle('on', state.notifSettings.push);
+    saveLocal();
+    if(perm==='granted'){
+      toast('✅ Push notifications aktivizuar!');
+      new Notification('Buxheti Familjar', {body:'Njoftimet janë aktivizuar! 🔔', icon:'./icon-192.png'});
+    } else {
+      toast('❌ Leja u refuzua');
+    }
+  });
+}
+
+function sendPushNotif(title, body){
+  if(Notification.permission==='granted'){
+    new Notification(title, {body, icon:'./icon-192.png'});
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  NAV
+// ═══════════════════════════════════════════════════════
+let currentTab='home';
+function switchTab(tab){
+  currentTab=tab;
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+tab).classList.add('active');
+  const nb=document.getElementById('nav-'+tab);
+  if(nb) nb.classList.add('active');
+  document.getElementById('fabBtn').style.display=tab==='settings'?'none':'flex';
+  renderAll();
+}
+
+// ═══════════════════════════════════════════════════════
+//  RENDER
+// ═══════════════════════════════════════════════════════
+function renderAll(){
+  document.getElementById('homeMonthLabel').textContent = MONTHS_AL[state.currentMonth]+' '+state.currentYear;
+  document.getElementById('chartMonthLabel').textContent = curKey();
+  if(currentTab==='home') renderHome();
+  if(currentTab==='debt') renderDebt();
+  if(currentTab==='chart') renderChart();
+  if(currentTab==='planner') renderPlanner();
+  if(currentTab==='settings') renderSettings();
+}
+
+function renderHome(){
+  const txs = curTxs();
+  const income = txs.filter(t=>t.type==='ardhur').reduce((s,t)=>s+t.amount,0);
+  const expenses = txs.filter(t=>t.type==='shpenzim').reduce((s,t)=>s+t.amount,0);
+  document.getElementById('hBalance').textContent = fmt(income-expenses);
+  document.getElementById('hIncome').textContent = fmt(income);
+  document.getElementById('hExpenses').textContent = fmt(expenses);
+
+  const search=(document.getElementById('searchInput').value||'').toLowerCase();
+  let filtered=[...txs].filter(t=>!search||t.name.toLowerCase().includes(search)||(t.note||'').toLowerCase().includes(search));
+  filtered.sort((a,b)=>b.date.localeCompare(a.date));
+
+  const el=document.getElementById('homeTxList');
+  if(!filtered.length){
+    el.innerHTML='<div class="empty"><div class="empty-icon">💸</div><div class="empty-text">Nuk ka transaksione.<br>Shtyp + për të shtuar.</div></div>';
+    return;
+  }
+  const byDate={};
+  filtered.forEach(t=>{if(!byDate[t.date])byDate[t.date]=[];byDate[t.date].push(t);});
+  el.innerHTML=Object.entries(byDate).map(([date,items])=>{
+    const dayExp=items.filter(i=>i.type==='shpenzim').reduce((s,i)=>s+i.amount,0);
+    const dayInc=items.filter(i=>i.type==='ardhur').reduce((s,i)=>s+i.amount,0);
+    return `<div>
+      <div class="tx-day-hdr"><span>${date}</span>
+        <span class="tx-day-amts">
+          ${dayExp>0?`<span style="color:var(--red)">-${fmtNum(dayExp)}</span>`:''}
+          ${dayInc>0?`<span style="color:var(--green)">+${fmtNum(dayInc)}</span>`:''}
+        </span>
+      </div>
+      ${items.map(t=>{
+        const meta=getDynCatMeta(t.cat);
+        const byWho = t.addedBy && t.addedBy!==session.memberName ? `<span class="who-badge">👤 ${t.addedBy}</span>` : '';
+        return `<div class="tx-item">
+          <div class="tx-icon" style="background:${meta.color}22;color:${meta.color}">${t.icon||meta.icon}</div>
+          <div class="tx-info">
+            <div class="tx-name">${t.name}${byWho}</div>
+            <div class="tx-sub">${meta.label}${t.note?' · '+t.note:''}</div>
+          </div>
+          <div class="tx-amt ${t.type==='ardhur'?'income':'expense'}">${t.type==='ardhur'?'+':'-'}${fmtNum(t.amount)}</div>
+          ${canDelete(t)?`<button class="tx-del" onclick="deleteTx('${t.id}')">×</button>`:'<span style="width:24px"></span>'}
+        </div>`;
+      }).join('')}
+    </div>`;
+  }).join('');
+}
+
+function canDelete(t){ return !t.addedBy || t.addedBy===session.memberName; }
+
+function renderDebt(){
+  const total=state.loans.reduce((s,l)=>s+Math.max(0,l.total-l.paid),0);
+  document.getElementById('debtTotal').textContent='Borxhi Total: -'+fmt(total);
+  document.getElementById('lentVal').textContent=fmtNum(state.loans.reduce((s,l)=>s+l.paid,0));
+  document.getElementById('borrowVal').textContent=fmtNum(total);
+  const el=document.getElementById('loansList');
+  if(!state.loans.length){el.innerHTML='<div class="empty"><div class="empty-icon">🏦</div><div class="empty-text">Nuk ka kredi</div></div>';return;}
+  el.innerHTML=state.loans.map(l=>{
+    const pct=l.total>0?Math.min(100,Math.round((l.paid/l.total)*100)):0;
+    const rem=Math.max(0,l.total-l.paid);
+    return `<div class="debt-card">
+      <div class="debt-hdr">
+        <div class="debt-avatar">${l.name.charAt(0)}</div>
+        <div><div class="debt-name">${l.name}</div><div class="debt-meta">${l.monthly?fmt(l.monthly)+'/muaj':''}${l.date?' · '+l.date:''}</div></div>
+        <div class="debt-amt">${fmt(rem)}</div>
+        <div class="debt-actions">
+          <button class="edit-link" onclick="openEditLoanModal('${l.id}')">✎</button>
+          <button class="del-link" onclick="deleteLoan('${l.id}')">×</button>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-dim);margin-bottom:5px;"><span>${fmt(l.paid)} paguar</span><span>${pct}%</span></div>
+      <div class="debt-prog-track"><div class="debt-prog-fill" style="width:${pct}%"></div></div>
+      <div class="goal-add-row"><input class="goal-add-inp" type="number" inputmode="numeric" placeholder="Shto pagesë..." id="loanPay_${l.id}"/><button class="goal-add-btn" onclick="payLoan('${l.id}')">+ Paguaj</button></div>
+    </div>`;
+  }).join('');
+}
+
+function renderChart(){
+  document.getElementById('chartTabExp').classList.toggle('active',state.chartType==='expense');
+  document.getElementById('chartTabInc').classList.toggle('active',state.chartType==='income');
+  const strip=document.getElementById('chartMonthsStrip');
+  strip.innerHTML=MONTHS_AL.map((m,i)=>{
+    const active=i===state.currentMonth;
+    return `<div class="cm-item ${active?'active':''}" onclick="jumpToMonth(${state.currentYear},${i})">
+      <div class="cm-year">${state.currentYear}</div><div class="cm-num">${i+1}</div></div>`;
+  }).join('');
+  setTimeout(()=>{const a=strip.querySelector('.active');if(a)a.scrollIntoView({inline:'center',block:'nearest'});},0);
+  const txs=curTxs().filter(t=>t.type===(state.chartType==='expense'?'shpenzim':'ardhur'));
+  const total=txs.reduce((s,t)=>s+t.amount,0);
+  document.getElementById('donutTitle').textContent=(state.chartType==='expense'?'Total Shpenzime: ':'Total Të Ardhura: ')+fmt(total);
+  const byCat={};
+  txs.forEach(t=>{byCat[t.cat]=(byCat[t.cat]||0)+t.amount;});
+  const entries=Object.entries(byCat).sort((a,b)=>b[1]-a[1]);
+  drawDonut(entries,total);
+  const legend=document.getElementById('donutLegend');
+  if(!entries.length){legend.innerHTML='<div class="empty" style="padding:10px"><div class="empty-text">Nuk ka të dhëna</div></div>';return;}
+  legend.innerHTML=entries.map(([cat,val])=>{
+    const meta=getDynCatMeta(cat);
+    const pct=total>0?Math.round((val/total)*100):0;
+    return `<div class="legend-row"><div class="legend-left"><span class="dot" style="background:${meta.color}"></span>${meta.label}</div><span class="legend-pct" style="color:${meta.color}">${pct}%</span></div>`;
+  }).join('');
+}
+
+function drawDonut(entries,total){
+  const svg=document.getElementById('donutSvg');
+  const cx=110,cy=110,r=85,sw=28;
+  if(!entries.length||total===0){svg.innerHTML=`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#2a2a2a" stroke-width="${sw}"/>`;return;}
+  let startAngle=-90,paths='';
+  entries.forEach(([cat,val])=>{
+    const meta=getDynCatMeta(cat);
+    const angle=(val/total)*360;
+    paths+=arcPath(cx,cy,r,startAngle,startAngle+angle,meta.color,sw);
+    startAngle+=angle;
+  });
+  svg.innerHTML=paths;
+}
+function polarXY(cx,cy,r,deg){const a=(deg-90)*Math.PI/180;return{x:cx+r*Math.cos(a),y:cy+r*Math.sin(a)};}
+function arcPath(cx,cy,r,s,e,color,sw){
+  const gap=e-s>359.5?0.5:0;
+  const S=polarXY(cx,cy,r,s),E=polarXY(cx,cy,r,e-gap);
+  return `<path d="M ${S.x} ${S.y} A ${r} ${r} 0 ${e-s>180?1:0} 1 ${E.x} ${E.y}" fill="none" stroke="${color}" stroke-width="${sw}" stroke-linecap="round"/>`;
+}
+function setChartType(t){state.chartType=t;renderChart();}
+function jumpToMonth(y,m){state.currentYear=y;state.currentMonth=m;saveLocal();renderAll();}
+
+function renderPlanner(){
+  const txs=curTxs();
+  const spentByCat={};
+  txs.filter(t=>t.type==='shpenzim').forEach(t=>{spentByCat[t.cat]=(spentByCat[t.cat]||0)+t.amount;});
+
+  const bEl=document.getElementById('budgetAlertCards');
+  if(!state.budgets.length){
+    bEl.innerHTML='<div class="empty" style="padding:20px 0;"><div class="empty-text">Nuk ka buxhete. Shto nga butoni poshtë.</div></div>';
+  } else {
+    bEl.innerHTML=state.budgets.map(b=>{
+      const meta=getDynCatMeta(b.cat);
+      const spent=spentByCat[b.cat]||0;
+      const pct=b.limit>0?Math.min(100,(spent/b.limit)*100):0;
+      const color=pct>=100?'var(--red)':pct>=(b.alertPct||80)?'var(--orange)':meta.color;
+      return `<div class="budget-alert-card">
+        <div class="budget-alert-top">
+          <span class="budget-alert-name">${meta.icon} ${meta.label}</span>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span class="budget-alert-pct" style="color:${color}">${Math.round(pct)}%</span>
+            <button onclick="deleteBudget('${b.id}')" style="background:none;border:none;color:var(--red);font-size:16px;cursor:pointer;">×</button>
+          </div>
+        </div>
+        <div class="budget-prog-track"><div class="budget-prog-fill" style="width:${pct}%;background:${color}"></div></div>
+        <div class="budget-nums"><span>${fmt(spent)} shpenzuar</span><span>Limit: ${fmt(b.limit)}</span></div>
+        ${pct>=100?'<div style="color:var(--red);font-size:12px;font-weight:700;margin-top:6px;">🚨 Buxheti u tejkalua!</div>':
+          pct>=(b.alertPct||80)?'<div style="color:var(--orange);font-size:12px;font-weight:600;margin-top:6px;">⚠️ Afër limitit!</div>':''}
+      </div>`;
+    }).join('');
+  }
+
+  const gEl=document.getElementById('goalsList');
+  gEl.innerHTML=!state.savings.length?'<div class="empty" style="padding:16px 0"><div class="empty-text">Nuk ka qëllime</div></div>':
+    state.savings.map(s=>{
+      const pct=s.goal>0?Math.min(100,Math.round((s.current/s.goal)*100)):0;
+      return `<div class="goal-card">
+        <div style="display:flex;align-items:center;gap:12px;">
+          <div class="goal-icon" style="background:#3ecf6e22;color:var(--green)">${s.icon||'🎯'}</div>
+          <div style="flex:1;">
+            <div style="font-size:13.5px;font-weight:700;margin-bottom:4px;">${s.name}</div>
+            <div class="goal-track"><div class="goal-fill" style="width:${pct}%;background:var(--green)"></div></div>
+            <div class="goal-nums"><span>${fmtNum(s.current)} ALL</span><span>${pct}% / ${fmtNum(s.goal)} ALL</span></div>
+          </div>
+          <button onclick="openEditSavingModal('${s.id}')" style="background:none;border:none;color:var(--blue);font-size:14px;cursor:pointer;">✎</button>
+          <button onclick="deleteSaving('${s.id}')" style="background:none;border:none;color:var(--red);font-size:18px;cursor:pointer;">×</button>
+        </div>
+        <div class="goal-add-row"><input class="goal-add-inp" type="number" inputmode="numeric" placeholder="Shto shumë..." id="savAdd_${s.id}"/><button class="goal-add-btn" onclick="addToSaving('${s.id}')">+ Shto</button></div>
+      </div>`;
+    }).join('');
+
+  const lEl=document.getElementById('plannerLoansSummary');
+  if(!state.loans.length) lEl.innerHTML='<div class="empty" style="padding:12px 0"><div class="empty-text">Nuk ka kredi</div></div>';
+  else {
+    const total=state.loans.reduce((s,l)=>s+Math.max(0,l.total-l.paid),0);
+    lEl.innerHTML=state.loans.map(l=>`
+      <div class="settings-row"><div><div class="settings-label">${l.name}</div><div class="settings-sub">${l.monthly?fmt(l.monthly)+'/muaj':''}</div></div>
+      <span class="settings-val" style="color:var(--orange)">${fmt(Math.max(0,l.total-l.paid))}</span></div>`).join('')+
+      `<div class="settings-row"><div class="settings-label" style="font-weight:700">Total Mbetur</div><span class="settings-val" style="color:var(--red)">${fmt(total)}</span></div>`;
+  }
+}
+
+function renderSettings(){
+  document.getElementById('catCountLbl').textContent = getCats().length+' kategori aktive';
+  document.getElementById('srcCountLbl').textContent = getIncomeSrcs().length+' burime aktive';
+  document.getElementById('incomeSettingsVal').textContent = fmt(state.baseIncome);
+  // notif toggles
+  document.getElementById('toggleBudget').classList.toggle('on',state.notifSettings.budget);
+  document.getElementById('toggleLimit').classList.toggle('on',state.notifSettings.limit);
+  document.getElementById('togglePush').classList.toggle('on',state.notifSettings.push);
+
+  // months
+  const keys=[...new Set(state.transactions.map(t=>t.date.slice(0,7)))].sort().reverse();
+  const mEl=document.getElementById('monthsWithData');
+  mEl.innerHTML=!keys.length?'<div class="settings-row"><div class="settings-label" style="color:var(--text-dim)">Nuk ka të dhëna</div></div>':
+    keys.slice(0,12).map(k=>{
+      const[y,m]=k.split('-');
+      const txs=state.transactions.filter(t=>t.date.startsWith(k));
+      const spent=txs.filter(t=>t.type==='shpenzim').reduce((s,t)=>s+t.amount,0);
+      return `<div class="settings-row" onclick="jumpToMonth(${parseInt(y)},${parseInt(m)-1});switchTab('home')" style="cursor:pointer;">
+        <div><div class="settings-label">${MONTHS_AL[parseInt(m)-1]} ${y}</div><div class="settings-sub">${txs.length} transaksione</div></div>
+        <span style="color:var(--red);font-weight:600;">${fmt(spent)}</span></div>`;
+    }).join('');
+  renderMembersSettings();
+}
+
+function renderMembersSettings(){
+  const el=document.getElementById('memberListSettings');
+  if(!el) return;
+  const members=Object.values(allMembers);
+  if(!members.length){el.innerHTML='';return;}
+  el.innerHTML='<div class="member-list" style="margin-top:10px;">'+members.map(m=>{
+    const online=Date.now()-m.lastSeen < 60000;
+    const colors=['#3b82f6','#3ecf6e','#f97316','#a78bfa','#ef4444'];
+    const color=colors[m.name.charCodeAt(0)%colors.length];
+    return `<div class="member-row">
+      <div class="member-avatar" style="background:${color}">${m.name.charAt(0).toUpperCase()}</div>
+      <div><div class="member-name">${m.name}${m.name===session.memberName?' (Unë)':''}</div><div class="member-role">${m.role||'anëtar'}</div></div>
+      <div class="${online?'member-online':'member-offline'}"></div>
+    </div>`;
+  }).join('')+'</div>';
+}
+
+// ═══════════════════════════════════════════════════════
+//  DATA OPERATIONS
+// ═══════════════════════════════════════════════════════
+let txType='shpenzim';
+
+function openTxModal(){
+  txType='shpenzim';
+  document.getElementById('txName').value='';
+  document.getElementById('txAmount').value='';
+  document.getElementById('txDate').value=new Date().toISOString().slice(0,10);
+  document.getElementById('txNote').value='';
+  populateCatSelect();
+  populateIncomeSrcSelect();
+  populateBudgetCatSelect();
+  document.getElementById('catFieldGroup').style.display='block';
+  document.getElementById('incomeSourceGroup').style.display='none';
+  document.querySelectorAll('#txTypeChips .chip').forEach((c,i)=>{
+    c.classList.toggle('selected',i===0);
+    c.classList.toggle('expense-sel',i===0);
+    c.classList.toggle('income-sel',false);
+  });
+  openModal('txModal');
+}
+
+function selectTxType(type,el){
+  txType=type;
+  document.querySelectorAll('#txTypeChips .chip').forEach(c=>{c.classList.remove('selected','expense-sel','income-sel');});
+  el.classList.add('selected',type==='shpenzim'?'expense-sel':'income-sel');
+  document.getElementById('catFieldGroup').style.display=type==='shpenzim'?'block':'none';
+  document.getElementById('incomeSourceGroup').style.display=type==='ardhur'?'block':'none';
+}
+
+async function saveTx(){
+  const name=document.getElementById('txName').value.trim();
+  const amount=parseFloat(document.getElementById('txAmount').value);
+  const date=document.getElementById('txDate').value;
+  const note=document.getElementById('txNote').value.trim();
+  if(!name){toast('Shkruaj emrin');return;}
+  if(!amount||amount<=0){toast('Shkruaj shumën');return;}
+  if(!date){toast('Zgjidh datën');return;}
+  const finalCat=txType==='ardhur'?(document.getElementById('txIncomeSrc').value||'tjeter'):document.getElementById('txCat').value;
+  const meta=getDynCatMeta(finalCat);
+  const tx={id:uid(),type:txType,name,amount,date,cat:finalCat,note,icon:meta.icon,addedBy:session.memberName||'Unë'};
+  await pushToFirebase('transactions',tx);
+  closeModal('txModal');
+  const[y,m]=date.split('-');
+  state.currentYear=parseInt(y);state.currentMonth=parseInt(m)-1;
+  saveLocal();
+  toast(txType==='ardhur'?'💰 U regjistrua':'💸 U regjistrua');
+}
+
+async function deleteTx(id){
+  if(!confirm('Fshi këtë transaksion?')) return;
+  await removeFromFirebase('transactions',id);
+  toast('U fshi');
+}
+
+function payLoan(id){
+  const inp=document.getElementById('loanPay_'+id);
+  const amt=parseFloat(inp.value);
+  if(!amt||amt<=0){toast('Shkruaj shumën');return;}
+  const l=state.loans.find(l=>l.id===id);
+  if(!l) return;
+  l.paid=(l.paid||0)+amt;
+  pushToFirebase('loans',l);
+  const tx={id:uid(),type:'shpenzim',name:'Pagesë: '+l.name,amount:amt,date:new Date().toISOString().slice(0,10),cat:'kesti',note:'',icon:'💳',addedBy:session.memberName||'Unë'};
+  pushToFirebase('transactions',tx);
+  toast('U regjistrua pagesa');inp.value='';
+}
+
+async function deleteLoan(id){if(!confirm('Fshi?')) return;await removeFromFirebase('loans',id);toast('U fshi');}
+async function deleteSaving(id){if(!confirm('Fshi?')) return;await removeFromFirebase('savings',id);toast('U fshi');}
+async function deleteBudget(id){await removeFromFirebase('budgets',id);toast('U fshi');}
+
+function openAddLoanModal(){['loanName','loanTotal','loanPaid','loanMonthly','loanDate'].forEach(i=>document.getElementById(i).value='');document.getElementById('loanEditId').value='';document.getElementById('loanModalTitle').textContent='Shto Kredi';openModal('loanModal');}
+function openEditLoanModal(id){const l=state.loans.find(l=>l.id===id);if(!l)return;document.getElementById('loanName').value=l.name;document.getElementById('loanTotal').value=l.total;document.getElementById('loanPaid').value=l.paid;document.getElementById('loanMonthly').value=l.monthly||'';document.getElementById('loanDate').value=l.date||'';document.getElementById('loanEditId').value=id;document.getElementById('loanModalTitle').textContent='Ndrysho Kredinë';openModal('loanModal');}
+async function saveLoan(){
+  const name=document.getElementById('loanName').value.trim();
+  if(!name){toast('Shkruaj emrin');return;}
+  const editId=document.getElementById('loanEditId').value;
+  const loan={id:editId||uid(),name,total:parseFloat(document.getElementById('loanTotal').value)||0,paid:parseFloat(document.getElementById('loanPaid').value)||0,monthly:parseFloat(document.getElementById('loanMonthly').value)||0,date:document.getElementById('loanDate').value};
+  await pushToFirebase('loans',loan);
+  closeModal('loanModal');toast(editId?'U përditësua':'U shtua');
+}
+
+const SAVING_ICON_LIST=['🎯','🎓','🛡️','✈️','🏡','🚗','💍','👶','🎁','💰','🏖️','📱'];
+function renderSavIconGrid(sel){document.getElementById('savIconGrid').innerHTML=SAVING_ICON_LIST.map(ic=>`<div class="icon-opt ${ic===sel?'selected':''}" onclick="selectSavIcon('${ic}',this)">${ic}</div>`).join('');}
+function selectSavIcon(ic,el){document.getElementById('savIcon').value=ic;document.querySelectorAll('#savIconGrid .icon-opt').forEach(o=>o.classList.remove('selected'));el.classList.add('selected');}
+function openAddSavingModal(){document.getElementById('savName').value='';document.getElementById('savGoal').value='';document.getElementById('savCurrent').value='';document.getElementById('savEditId').value='';document.getElementById('savIcon').value='🎯';renderSavIconGrid('🎯');document.getElementById('savingModalTitle').textContent='Shto Qëllim';openModal('savingModal');}
+function openEditSavingModal(id){const s=state.savings.find(s=>s.id===id);if(!s)return;document.getElementById('savName').value=s.name;document.getElementById('savGoal').value=s.goal;document.getElementById('savCurrent').value=s.current;document.getElementById('savEditId').value=id;document.getElementById('savIcon').value=s.icon||'🎯';renderSavIconGrid(s.icon||'🎯');document.getElementById('savingModalTitle').textContent='Ndrysho';openModal('savingModal');}
+async function saveSaving(){const name=document.getElementById('savName').value.trim();if(!name){toast('Shkruaj emrin');return;}const editId=document.getElementById('savEditId').value;const sav={id:editId||uid(),name,icon:document.getElementById('savIcon').value||'🎯',goal:parseFloat(document.getElementById('savGoal').value)||0,current:parseFloat(document.getElementById('savCurrent').value)||0};await pushToFirebase('savings',sav);closeModal('savingModal');toast(editId?'U përditësua':'U shtua');}
+async function addToSaving(id){const inp=document.getElementById('savAdd_'+id);const amt=parseFloat(inp.value);if(!amt||amt<=0){toast('Shkruaj shumën');return;}const s=state.savings.find(s=>s.id===id);if(!s)return;s.current=(s.current||0)+amt;await pushToFirebase('savings',s);const tx={id:uid(),type:'shpenzim',name:'Kursim: '+s.name,amount:amt,date:new Date().toISOString().slice(0,10),cat:'kursim',note:'',icon:s.icon||'🎯',addedBy:session.memberName||'Unë'};await pushToFirebase('transactions',tx);toast('U shtua');inp.value='';}
+
+function populateCatSelect(){const sel=document.getElementById('txCat');sel.innerHTML=getCats().map(c=>`<option value="${c.id}">${c.icon} ${c.label}</option>`).join('');}
+function populateIncomeSrcSelect(){const sel=document.getElementById('txIncomeSrc');sel.innerHTML=getIncomeSrcs().map(s=>`<option value="${s.id}">${s.icon} ${s.label}</option>`).join('');}
+function populateBudgetCatSelect(){const sel=document.getElementById('budgetCat');if(!sel)return;sel.innerHTML=getCats().map(c=>`<option value="${c.id}">${c.icon} ${c.label}</option>`).join('');}
+
+function openAddBudgetModal(){populateBudgetCatSelect();document.getElementById('budgetLimit').value='';document.getElementById('budgetAlertPct').value='80';openModal('budgetModal');}
+async function saveBudget(){const cat=document.getElementById('budgetCat').value;const limit=parseFloat(document.getElementById('budgetLimit').value)||0;const alertPct=parseInt(document.getElementById('budgetAlertPct').value)||80;if(!limit){toast('Shkruaj limitin');return;}const existing=state.budgets.find(b=>b.cat===cat);const b={id:existing?existing.id:uid(),cat,limit,alertPct};await pushToFirebase('budgets',b);closeModal('budgetModal');toast('Buxheti u ruajt');}
+
+async function saveIncome(){const inc=parseFloat(document.getElementById('incomeInput').value);if(inc>0){state.baseIncome=inc;await pushSettingToFirebase('baseIncome',inc);saveLocal();}closeModal('incomeModal');toast('U përditësua');}
+function openIncomeModal(){document.getElementById('incomeInput').value=state.baseIncome;openModal('incomeModal');}
+
+// CATEGORIES
+function openManageCatsModal(){renderCatListUI();document.getElementById('newCatIcon').value='';document.getElementById('newCatName').value='';openModal('manageCatsModal');}
+function renderCatListUI(){const el=document.getElementById('catListUI');el.innerHTML=getCats().map(c=>`<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);"><span style="width:32px;height:32px;border-radius:50%;background:${c.color}22;color:${c.color};display:flex;align-items:center;justify-content:center;font-size:16px;">${c.icon}</span><span style="flex:1;font-size:14px;">${c.label}</span><button onclick="deleteCat('${c.id}')" style="background:none;border:none;color:var(--red);font-size:18px;cursor:pointer;">×</button></div>`).join('');}
+function selectColor(el,color){document.querySelectorAll('.col-dot').forEach(d=>d.classList.remove('selected'));el.classList.add('selected');document.getElementById('newCatColor').value=color;}
+async function addNewCat(){const icon=document.getElementById('newCatIcon').value.trim()||'📌';const label=document.getElementById('newCatName').value.trim();const color=document.getElementById('newCatColor').value||'#888';if(!label){toast('Shkruaj emrin');return;}if(!state.categories)state.categories=[...DEFAULT_CATS];state.categories.push({id:'cat_'+Date.now(),icon,label,color});await pushSettingToFirebase('categories',state.categories);saveLocal();renderCatListUI();populateCatSelect();document.getElementById('newCatIcon').value='';document.getElementById('newCatName').value='';toast('U shtua: '+icon+' '+label);}
+async function deleteCat(id){if(!confirm('Fshi?'))return;if(!state.categories)state.categories=[...DEFAULT_CATS];state.categories=state.categories.filter(c=>c.id!==id);await pushSettingToFirebase('categories',state.categories);saveLocal();renderCatListUI();populateCatSelect();toast('U fshi');}
+
+function openManageIncomeSrcModal(){renderIncomeSrcListUI();document.getElementById('newSrcIcon').value='';document.getElementById('newSrcName').value='';openModal('manageIncomeSrcModal');}
+function renderIncomeSrcListUI(){const el=document.getElementById('incomeSrcListUI');el.innerHTML=getIncomeSrcs().map(s=>`<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);"><span style="font-size:20px;">${s.icon}</span><span style="flex:1;font-size:14px;">${s.label}</span><button onclick="deleteIncomeSrc('${s.id}')" style="background:none;border:none;color:var(--red);font-size:18px;cursor:pointer;">×</button></div>`).join('');}
+async function addNewIncomeSrc(){const icon=document.getElementById('newSrcIcon').value.trim()||'💰';const label=document.getElementById('newSrcName').value.trim();if(!label){toast('Shkruaj emrin');return;}if(!state.incomeSources)state.incomeSources=[...DEFAULT_INCOME_SRCS];state.incomeSources.push({id:'src_'+Date.now(),icon,label});await pushSettingToFirebase('incomeSources',state.incomeSources);saveLocal();renderIncomeSrcListUI();populateIncomeSrcSelect();document.getElementById('newSrcIcon').value='';document.getElementById('newSrcName').value='';toast('U shtua: '+icon+' '+label);}
+async function deleteIncomeSrc(id){if(!confirm('Fshi?'))return;if(!state.incomeSources)state.incomeSources=[...DEFAULT_INCOME_SRCS];state.incomeSources=state.incomeSources.filter(s=>s.id!==id);await pushSettingToFirebase('incomeSources',state.incomeSources);saveLocal();renderIncomeSrcListUI();populateIncomeSrcSelect();toast('U fshi');}
+
+// BACKUP
+function exportData(){openModal('backupModal');}
+function doDownloadBackup(){try{const blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='buxheti_backup_'+curKey()+'.json';document.body.appendChild(a);a.click();document.body.removeChild(a);toast('✅ Backup u shkarkua');}catch(e){toast('Kopjo tekstin');}}
+function copyBackupText(){const json=JSON.stringify(state,null,2);navigator.clipboard?.writeText(json).then(()=>toast('✅ U kopjua!')).catch(()=>{document.getElementById('backupTextarea').value=json;toast('Zgjidh e kopjo nga kutia');});}
+function shareBackup(){const json=JSON.stringify(state,null,2);if(navigator.share)navigator.share({title:'Buxheti Backup',text:json}).catch(()=>{});else copyBackupText();}
+function importBackup(){const text=document.getElementById('backupTextarea').value.trim();if(!text){toast('Ngjit të dhënat');return;}try{const imp=JSON.parse(text);if(!imp.transactions){toast('Format i gabuar');return;}Object.assign(state,imp);saveLocal();closeModal('backupModal');renderAll();toast('✅ U importua!');}catch(e){toast('❌ Format i gabuar');}}
+function confirmReset(){if(!confirm('Fshi të gjitha?'))return;if(!confirm('Konfirmo.'))return;localStorage.clear();location.reload();}
+
+// MONTH MODAL
+let tempYear=new Date().getFullYear();
+function openMonthModal(){tempYear=state.currentYear;renderMonthGrid();openModal('monthModal');}
+function renderMonthGrid(){document.getElementById('yearDisplay').textContent=tempYear;const keys=new Set(state.transactions.map(t=>t.date.slice(0,7)));document.getElementById('monthGrid').innerHTML=MONTHS_AL.map((m,i)=>{const k=monthKey(tempYear,i);const active=tempYear===state.currentYear&&i===state.currentMonth;return `<button class="month-opt ${active?'active':''} ${keys.has(k)?'has-data':''}" onclick="selectMonth(${i})">${m}</button>`;}).join('');}
+function changeYear(d){tempYear+=d;renderMonthGrid();}
+function selectMonth(m){state.currentYear=tempYear;state.currentMonth=m;closeModal('monthModal');saveLocal();renderAll();}
+
+// FAB & MODALS
+function openFAB(){openModal('fabModal');}
+function openModal(id){document.getElementById(id).classList.add('open');}
+function closeModal(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.modal-overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('open');}));
+
+// TOAST
+function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('show');setTimeout(()=>el.classList.remove('show'),2500);}
+
+// SW
+if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(()=>{});
+
+// INIT
+loadLocal();
+loadSession();
+
+if(session.familyCode&&session.memberName){
+  if(window._fbReady) enterApp();
+  else window.addEventListener('fbReady',()=>enterApp());
+}
+// else show login screen (default)
+
+// REFRESH
+function refreshApp(){
+  const btn = document.getElementById('refreshBtn');
+  if(btn) btn.style.opacity = '0.4';
+  if(session.familyCode && window._fb){
+    // Re-trigger sync
+    startSync();
+    setTimeout(()=>{ if(btn) btn.style.opacity='1'; toast('✅ U rifreskua!'); }, 1500);
+  } else {
+    location.reload();
+  }
+}
+
+// PWA INSTALL
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  const btn = document.getElementById('installBtn');
+  if(btn) btn.style.display = 'flex';
+});
+window.addEventListener('appinstalled', () => {
+  deferredPrompt = null;
+  const btn = document.getElementById('installBtn');
+  if(btn) btn.style.display = 'none';
+  toast('✅ App u instalua!');
+});
+function installPWA(){
+  if(deferredPrompt){
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(choice => {
+      if(choice.outcome === 'accepted') toast('✅ Po instalohet...');
+      deferredPrompt = null;
+    });
+  } else {
+    // iOS instructions
+    toast('Shtyp Share → "Add to Home Screen"');
+  }
+}
+
+</script>
+</body>
+</html>
