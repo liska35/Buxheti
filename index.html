@@ -1,0 +1,1277 @@
+<!DOCTYPE html>
+<html lang="sq">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Buxheti">
+<meta name="theme-color" content="#0a0a0a">
+<link rel="manifest" href="./manifest.json">
+<title>Buxheti Familjar</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#0a0a0a; --bg2:#161616; --bg3:#1f1f1f; --card:#181818;
+  --border:#2a2a2a; --text:#f5f5f5; --text-dim:#8a8a8a; --text-dim2:#5e5e5e;
+  --green:#3ecf6e; --red:#ef4444; --blue:#3b82f6; --yellow:#f4d35e;
+  --orange:#f97316; --purple:#a78bfa; --gray:#6b7280;
+  --safe-top:env(safe-area-inset-top,0px); --safe-bot:env(safe-area-inset-bottom,0px);
+}
+html,body{height:100%;overflow:hidden;}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);display:flex;flex-direction:column;height:100dvh;}
+.page{display:none;flex:1;overflow-y:auto;}
+.page.active{display:block;}
+.page::-webkit-scrollbar{width:0;}
+.content{padding:calc(var(--safe-top) + 14px) 16px 90px;}
+
+/* TOP BAR */
+.topbar{display:flex;align-items:center;justify-content:space-between;padding-bottom:18px;}
+.topbar-icon{width:38px;height:38px;display:flex;align-items:center;justify-content:center;color:var(--text-dim);}
+.topbar-icon svg{width:22px;height:22px;}
+.topbar-title{font-size:15px;font-weight:600;color:var(--text-dim);}
+.topbar-right{display:flex;gap:6px;}
+.icon-badge{position:relative;}
+.badge-dot{position:absolute;top:-2px;right:-2px;background:var(--red);color:#fff;font-size:9px;font-weight:700;border-radius:99px;width:15px;height:15px;display:flex;align-items:center;justify-content:center;}
+
+/* BALANCE CARD */
+.balance-card{background:var(--bg2);border-radius:18px;padding:20px;margin-bottom:14px;border:1px solid var(--border);}
+.balance-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;}
+.balance-label{font-size:13px;color:var(--text-dim);}
+.balance-amt{font-size:30px;font-weight:700;margin:6px 0 18px;}
+.balance-split{display:flex;justify-content:space-between;}
+.bsplit-item{flex:1;}
+.bsplit-lbl{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-dim);margin-bottom:4px;}
+.bsplit-val{font-size:17px;font-weight:700;}
+.dot{width:8px;height:8px;border-radius:50%;}
+
+.alert-banner{background:#2a1515;border:1px solid #4a2020;color:#ff8080;border-radius:12px;padding:11px 14px;font-size:12px;display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;line-height:1.4;}
+.alert-x{background:none;border:none;color:#ff8080;font-size:18px;cursor:pointer;padding:0 0 0 10px;flex-shrink:0;}
+
+.search-bar{display:flex;align-items:center;justify-content:space-between;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:11px 14px;margin-bottom:18px;color:var(--text-dim);font-size:13px;}
+
+.section-label{font-size:11px;font-weight:700;color:var(--text-dim2);text-transform:uppercase;letter-spacing:0.8px;margin:18px 0 8px;padding:0 2px;}
+
+/* TX LIST */
+.tx-day{margin-bottom:4px;}
+.tx-day-hdr{display:flex;justify-content:space-between;align-items:center;padding:8px 2px 6px;font-size:12.5px;color:var(--text-dim);}
+.tx-day-amts{display:flex;gap:8px;font-weight:600;}
+.tx-item{display:flex;align-items:center;gap:12px;padding:11px 4px;border-bottom:1px solid var(--border);}
+.tx-item:active{opacity:0.7;}
+.tx-icon{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0;}
+.tx-info{flex:1;min-width:0;}
+.tx-name{font-size:14px;font-weight:500;}
+.tx-sub{font-size:11.5px;color:var(--text-dim);margin-top:1px;}
+.tx-amt{font-size:14.5px;font-weight:700;white-space:nowrap;}
+.tx-amt.income{color:var(--green);}
+.tx-amt.expense{color:var(--red);}
+.tx-del{background:none;border:none;color:var(--text-dim2);font-size:20px;padding:2px 4px;margin-left:2px;}
+
+.empty{text-align:center;padding:50px 20px;color:var(--text-dim);}
+.empty-icon{font-size:38px;margin-bottom:10px;opacity:0.5;}
+.empty-text{font-size:13.5px;}
+
+/* TABS pill */
+.pill-tabs{display:flex;background:var(--bg2);border-radius:12px;padding:3px;margin-bottom:14px;}
+.pill-tab{flex:1;text-align:center;padding:10px 4px;border-radius:9px;font-size:13px;font-weight:600;color:var(--text-dim);cursor:pointer;}
+.pill-tab.active{background:#fff;color:#000;}
+
+/* CHART NAV */
+.chart-months{display:flex;gap:8px;overflow-x:auto;padding-bottom:6px;margin-bottom:14px;}
+.chart-months::-webkit-scrollbar{display:none;}
+.cm-item{flex-shrink:0;text-align:center;min-width:54px;padding:8px 4px;border-radius:10px;cursor:pointer;}
+.cm-item.active{background:var(--bg2);border:1px solid var(--border);}
+.cm-year{font-size:10px;color:var(--text-dim2);}
+.cm-num{font-size:15px;font-weight:600;}
+
+.donut-card{background:var(--bg2);border:1px solid var(--border);border-radius:18px;padding:20px;margin-bottom:14px;}
+.donut-title{text-align:center;font-size:15px;font-weight:700;margin-bottom:16px;}
+.donut-wrap{display:flex;justify-content:center;margin-bottom:18px;}
+.legend{display:flex;flex-direction:column;gap:10px;}
+.legend-row{display:flex;align-items:center;justify-content:space-between;font-size:13px;}
+.legend-left{display:flex;align-items:center;gap:10px;}
+.legend-pct{font-weight:700;}
+
+/* CARDS generic */
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:16px;padding:16px;margin-bottom:12px;}
+.card-hdr{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.card-title{font-size:14.5px;font-weight:700;}
+.card-link{font-size:12.5px;color:var(--blue);font-weight:600;}
+
+/* PROGRESS budget rows */
+.prog-row{margin-bottom:16px;}
+.prog-row:last-child{margin-bottom:0;}
+.prog-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;}
+.prog-name{font-size:13.5px;font-weight:600;}
+.prog-amt{font-size:12px;color:var(--text-dim);}
+.prog-track{background:var(--bg3);border-radius:99px;height:7px;overflow:hidden;}
+.prog-fill{height:100%;border-radius:99px;}
+.prog-pct{font-size:11px;color:var(--text-dim);margin-top:4px;text-align:right;}
+
+/* DEBT page */
+.debt-total{font-size:26px;font-weight:700;margin:14px 0 16px;}
+.debt-split{display:flex;background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:16px;}
+.debt-split-item{flex:1;}
+.debt-split-lbl{font-size:12.5px;color:var(--text-dim);margin-bottom:6px;display:flex;align-items:center;gap:6px;}
+.debt-split-val{font-size:18px;font-weight:700;}
+
+.debt-card{background:var(--bg2);border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:10px;position:relative;}
+.debt-hdr{display:flex;align-items:center;gap:12px;margin-bottom:10px;}
+.debt-avatar{width:42px;height:42px;border-radius:50%;border:2px solid var(--red);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:16px;color:var(--red);flex-shrink:0;}
+.debt-name{font-size:15px;font-weight:700;}
+.debt-meta{font-size:11.5px;color:var(--text-dim);margin-top:1px;}
+.debt-amt{font-weight:700;color:var(--green);font-size:15px;margin-left:auto;}
+.debt-actions{display:flex;gap:6px;position:absolute;top:14px;right:14px;}
+.debt-icon-btn{background:none;border:none;color:var(--text-dim);font-size:15px;padding:2px 6px;}
+.debt-prog-row{display:flex;justify-content:space-between;font-size:11.5px;color:var(--text-dim);margin-bottom:6px;}
+.debt-prog-track{background:var(--bg3);border-radius:99px;height:7px;}
+.debt-prog-fill{height:100%;border-radius:99px;background:var(--orange);}
+
+/* Goals */
+.goal-card{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);}
+.goal-card:last-child{border-bottom:none;}
+.goal-icon{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.goal-info{flex:1;}
+.goal-name{font-size:13.5px;font-weight:700;margin-bottom:4px;}
+.goal-track{background:var(--bg3);border-radius:99px;height:6px;margin-bottom:4px;}
+.goal-fill{height:100%;border-radius:99px;}
+.goal-nums{display:flex;justify-content:space-between;font-size:11px;color:var(--text-dim);}
+.goal-add-row{display:flex;gap:6px;margin-top:8px;}
+.goal-add-inp{flex:1;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:7px 10px;font-size:12.5px;color:var(--text);}
+.goal-add-btn{background:var(--green);color:#000;border:none;border-radius:8px;padding:7px 12px;font-size:12px;font-weight:700;}
+
+/* FAB */
+.fab{position:fixed;bottom:calc(var(--safe-bot) + 70px);left:50%;transform:translateX(-50%);width:54px;height:54px;border-radius:50%;background:var(--blue);color:#fff;border:none;font-size:26px;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 18px rgba(59,130,246,0.45);z-index:60;}
+.fab:active{transform:translateX(-50%) scale(0.92);}
+
+/* NAV */
+.nav{background:var(--bg2);border-top:1px solid var(--border);display:flex;padding:8px 0 calc(var(--safe-bot) + 8px);flex-shrink:0;order:99;position:relative;}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;color:var(--text-dim2);font-size:10px;padding:4px 2px;}
+.nav-btn.active{color:var(--blue);}
+.nav-btn svg{width:21px;height:21px;}
+.nav-spacer{width:54px;flex-shrink:0;}
+
+/* MODALS */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:100;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.2s;}
+.modal-overlay.open{opacity:1;pointer-events:all;}
+.modal{background:var(--bg2);border-radius:20px 20px 0 0;padding:0 0 calc(var(--safe-bot) + 16px);width:100%;max-height:92dvh;overflow-y:auto;transform:translateY(100%);transition:transform 0.25s cubic-bezier(.4,0,.2,1);border-top:1px solid var(--border);}
+.modal-overlay.open .modal{transform:translateY(0);}
+.modal-handle{width:36px;height:4px;background:var(--border);border-radius:99px;margin:12px auto 4px;}
+.modal-title{font-size:17px;font-weight:700;padding:10px 20px 14px;border-bottom:1px solid var(--border);}
+.modal-body{padding:16px 20px;}
+
+.field-group{margin-bottom:14px;}
+.field-label{font-size:12px;font-weight:600;color:var(--text-dim);margin-bottom:6px;display:block;}
+.field-input{width:100%;border:1.5px solid var(--border);background:var(--bg3);color:var(--text);border-radius:10px;padding:12px 13px;font-size:15px;appearance:none;-webkit-appearance:none;}
+.field-input:focus{outline:none;border-color:var(--blue);}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+select.field-input{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24'%3E%3Cpath fill='%238a8a8a' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;}
+
+.chips{display:flex;flex-wrap:wrap;gap:8px;}
+.chip{padding:9px 16px;border-radius:10px;font-size:13.5px;font-weight:600;border:1.5px solid var(--border);background:var(--bg3);color:var(--text-dim);cursor:pointer;flex:1;text-align:center;}
+.chip.selected.expense-sel{border-color:var(--red);background:#2a1515;color:var(--red);}
+.chip.selected.income-sel{border-color:var(--green);background:#13261a;color:var(--green);}
+
+.icon-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin-top:8px;}
+.icon-opt{aspect-ratio:1;border-radius:10px;background:var(--bg3);border:1.5px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:18px;cursor:pointer;}
+.icon-opt.selected{border-color:var(--blue);background:#15233b;}
+
+.btn-primary{width:100%;background:var(--blue);color:#fff;border:none;border-radius:12px;padding:14px;font-size:16px;font-weight:700;cursor:pointer;margin-top:6px;}
+.btn-green{background:var(--green);color:#000;}
+.btn-secondary{width:100%;background:var(--bg3);color:var(--text);border:1px solid var(--border);border-radius:12px;padding:13px;font-size:14.5px;font-weight:600;cursor:pointer;margin-top:8px;}
+
+.toast{position:fixed;bottom:calc(var(--safe-bot) + 90px);left:50%;transform:translateX(-50%) translateY(20px);background:#fff;color:#000;padding:10px 20px;border-radius:99px;font-size:13px;font-weight:600;z-index:200;opacity:0;transition:all 0.25s;pointer-events:none;white-space:nowrap;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+.month-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+.month-opt{padding:13px 6px;border-radius:10px;text-align:center;font-size:13.5px;font-weight:500;border:1.5px solid var(--border);background:var(--bg3);color:var(--text);}
+.month-opt.active{border-color:var(--blue);background:#15233b;color:var(--blue);font-weight:700;}
+.month-opt.has-data{position:relative;}
+.month-opt.has-data::after{content:'';position:absolute;bottom:6px;left:50%;transform:translateX(-50%);width:5px;height:5px;border-radius:50%;background:var(--green);}
+.year-row{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.year-btn{background:var(--bg3);border:1px solid var(--border);color:var(--text);border-radius:8px;padding:7px 16px;font-size:16px;}
+.year-label{font-size:18px;font-weight:700;}
+
+.settings-row{display:flex;align-items:center;justify-content:space-between;padding:14px 4px;border-bottom:1px solid var(--border);}
+.settings-row:last-child{border-bottom:none;}
+.settings-label{font-size:14px;font-weight:500;}
+.settings-sub{font-size:11.5px;color:var(--text-dim);margin-top:2px;}
+.settings-val{font-size:14px;font-weight:600;color:var(--blue);}
+.edit-link{background:none;border:none;color:var(--blue);font-size:13px;font-weight:600;}
+.del-link{background:none;border:none;color:var(--red);font-size:18px;}
+</style>
+</head>
+<body>
+
+<!-- ═══════════ HOME PAGE ═══════════ -->
+<div class="page active" id="page-home">
+  <div class="content">
+    <div class="topbar">
+      <div class="topbar-icon" onclick="switchTab('settings')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </div>
+      <div class="topbar-title">Buxheti Familjar</div>
+      <div class="topbar-right">
+        <div class="topbar-icon icon-badge" onclick="openMonthModal()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        </div>
+        <div class="topbar-icon" onclick="exportData()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="balance-card">
+      <div class="balance-row"><span class="balance-label">Bilanci Total</span></div>
+      <div class="balance-amt" id="hBalance">0 ALL</div>
+      <div class="balance-split">
+        <div class="bsplit-item">
+          <div class="bsplit-lbl"><span class="dot" style="background:var(--green)"></span>Të Ardhura</div>
+          <div class="bsplit-val" style="color:var(--green)" id="hIncome">0 ALL</div>
+        </div>
+        <div class="bsplit-item">
+          <div class="bsplit-lbl"><span class="dot" style="background:var(--red)"></span>Shpenzime</div>
+          <div class="bsplit-val" style="color:var(--red)" id="hExpenses">0 ALL</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="alert-banner" id="alertBanner">
+      <span>Nuk ke eksportuar të dhënat kohët e fundit. Bëj backup për t'i mbrojtur.</span>
+      <button class="alert-x" onclick="document.getElementById('alertBanner').style.display='none'">×</button>
+    </div>
+
+    <div class="search-bar" onclick="document.getElementById('searchInput').focus()">
+      <input id="searchInput" placeholder="Kërko në transaksione" oninput="renderHome()" style="background:none;border:none;color:var(--text);font-size:13px;width:100%;outline:none;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" style="flex-shrink:0"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    </div>
+
+    <div id="homeTxList"></div>
+  </div>
+</div>
+
+<!-- ═══════════ DEBT PAGE ═══════════ -->
+<div class="page" id="page-debt">
+  <div class="content">
+    <div class="topbar">
+      <div class="topbar-icon" onclick="switchTab('settings')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </div>
+      <div class="topbar-title">Kredi & Këste</div>
+      <div style="width:38px"></div>
+    </div>
+    <div class="debt-total" id="debtTotal">Borxhi Total: 0 ALL</div>
+    <div class="debt-split">
+      <div class="debt-split-item">
+        <div class="debt-split-lbl"><span class="dot" style="background:var(--green)"></span><span id="lentCount">0 Paguar</span></div>
+        <div class="debt-split-val" id="lentVal">0</div>
+      </div>
+      <div class="debt-split-item">
+        <div class="debt-split-lbl"><span class="dot" style="background:var(--orange)"></span><span id="borrowCount">0 Aktive</span></div>
+        <div class="debt-split-val" id="borrowVal">0</div>
+      </div>
+    </div>
+    <div id="loansList"></div>
+  </div>
+</div>
+
+<!-- ═══════════ CHART PAGE ═══════════ -->
+<div class="page" id="page-chart">
+  <div class="content">
+    <div class="topbar">
+      <div class="topbar-icon" onclick="switchTab('settings')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </div>
+      <div class="topbar-title" id="chartMonthLabel">2026-06</div>
+      <div class="topbar-icon" onclick="openMonthModal()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      </div>
+    </div>
+
+    <div class="chart-months" id="chartMonthsStrip"></div>
+
+    <div class="pill-tabs">
+      <div class="pill-tab active" id="chartTabExp" onclick="setChartType('expense')">Shpenzime</div>
+      <div class="pill-tab" id="chartTabInc" onclick="setChartType('income')">Të Ardhura</div>
+    </div>
+
+    <div class="donut-card">
+      <div class="donut-title" id="donutTitle">Total Shpenzime: 0 ALL</div>
+      <div class="donut-wrap"><svg id="donutSvg" width="220" height="220" viewBox="0 0 220 220"></svg></div>
+      <div class="legend" id="donutLegend"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════ PLANNER PAGE ═══════════ -->
+<div class="page" id="page-planner">
+  <div class="content">
+    <div class="topbar">
+      <div class="topbar-icon" onclick="switchTab('settings')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      </div>
+      <div class="topbar-title">Planifikuesi</div>
+      <div style="width:38px"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-hdr">
+        <div class="card-title">📊 Buxheti sipas Kategorisë</div>
+      </div>
+      <div id="budgetRows"></div>
+      <button class="card-link" style="background:none;border:none;margin-top:10px;" onclick="openAddBudgetModal()">+ Krijo Buxhet</button>
+    </div>
+
+    <div class="card">
+      <div class="card-hdr">
+        <div class="card-title">🎯 Qëllimet e Kursimit</div>
+        <button class="card-link" style="background:none;border:none;" onclick="openAddSavingModal()">+ Shto</button>
+      </div>
+      <div id="goalsList"></div>
+    </div>
+
+    <div class="section-label">🏦 Kredi - Përmbledhje</div>
+    <div class="card" id="plannerLoansSummary"></div>
+  </div>
+</div>
+
+<!-- ═══════════ SETTINGS PAGE ═══════════ -->
+<div class="page" id="page-settings">
+  <div class="content">
+    <div class="topbar">
+      <div style="width:38px"></div>
+      <div class="topbar-title">Cilësimet</div>
+      <div style="width:38px"></div>
+    </div>
+
+    <div class="section-label">Të Ardhurat</div>
+    <div class="card">
+      <div class="settings-row">
+        <div><div class="settings-label">💰 Të ardhura mujore (bazë)</div><div class="settings-sub">Shtohet automatikisht çdo muaj</div></div>
+        <button class="edit-link" onclick="openIncomeModal()">Ndrysho</button>
+      </div>
+    </div>
+
+    <div class="section-label">Muajt me të dhëna</div>
+    <div class="card" id="monthsWithData"></div>
+
+    <div class="section-label">Të dhënat</div>
+    <div class="card">
+      <div class="settings-row" onclick="exportData()" style="cursor:pointer;">
+        <div><div class="settings-label">📤 Eksporto (Backup)</div><div class="settings-sub">Shkarko si JSON</div></div>
+        <span style="color:var(--text-dim)">›</span>
+      </div>
+      <div class="settings-row" onclick="confirmReset()" style="cursor:pointer;">
+        <div><div class="settings-label" style="color:var(--red)">🗑️ Fshi të gjitha të dhënat</div><div class="settings-sub">Nuk mund të zhbëhet</div></div>
+        <span style="color:var(--text-dim)">›</span>
+      </div>
+    </div>
+    <div style="text-align:center;padding:24px 0;color:var(--text-dim2);font-size:11.5px;">Buxheti Familjar v2.0 · Të dhënat ruhen lokalisht n​ë telefon</div>
+  </div>
+</div>
+
+<!-- FAB -->
+<button class="fab" id="fabBtn" onclick="openFAB()">+</button>
+
+<!-- NAV -->
+<nav class="nav">
+  <button class="nav-btn active" id="nav-home" onclick="switchTab('home')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+    Ballina
+  </button>
+  <button class="nav-btn" id="nav-debt" onclick="switchTab('debt')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+    Kredi
+  </button>
+  <div class="nav-spacer"></div>
+  <button class="nav-btn" id="nav-chart" onclick="switchTab('chart')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.21 15.89A10 10 0 118 2.83"/><path d="M22 12A10 10 0 0012 2v10z"/></svg>
+    Grafiku
+  </button>
+  <button class="nav-btn" id="nav-planner" onclick="switchTab('planner')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+    Plani
+  </button>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<!-- ═══════════ MODALS ═══════════ -->
+
+<div class="modal-overlay" id="monthModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Zgjidh Muajin</div>
+    <div class="modal-body">
+      <div class="year-row">
+        <button class="year-btn" onclick="changeYear(-1)">‹</button>
+        <span class="year-label" id="yearDisplay">2026</span>
+        <button class="year-btn" onclick="changeYear(1)">›</button>
+      </div>
+      <div class="month-grid" id="monthGrid"></div>
+      <button class="btn-secondary" onclick="closeModal('monthModal')">Mbyll</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="txModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="txModalTitle">Shto Transaksion</div>
+    <div class="modal-body">
+      <div class="field-group">
+        <div class="chips" id="txTypeChips">
+          <div class="chip selected expense-sel" onclick="selectTxType('shpenzim',this)">💸 Shpenzim</div>
+          <div class="chip" onclick="selectTxType('ardhur',this)">💰 Të ardhura</div>
+        </div>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Emri</label>
+        <input class="field-input" id="txName" placeholder="p.sh. Supermarket"/>
+      </div>
+      <div class="field-row">
+        <div class="field-group">
+          <label class="field-label">Shuma (ALL)</label>
+          <input class="field-input" id="txAmount" type="number" inputmode="numeric" placeholder="0"/>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Data</label>
+          <input class="field-input" id="txDate" type="date"/>
+        </div>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Kategoria</label>
+        <select class="field-input" id="txCat">
+          <option value="ushqim">🍽️ Ushqim & Pije</option>
+          <option value="qendra">🏢 Shpenzime Qendra</option>
+          <option value="makina">🚗 Makina</option>
+          <option value="karburant">⛽ Karburant</option>
+          <option value="fatura">💡 Fatura</option>
+          <option value="kredi">🏠 Kredi Shtëpie</option>
+          <option value="kesti">💳 Kesti / Borxh</option>
+          <option value="femije">🧸 Fëmijët</option>
+          <option value="shendet">💊 Shëndet</option>
+          <option value="beauty">💇 Beauty</option>
+          <option value="argetim">🎭 Argëtim</option>
+          <option value="kursim">🎯 Kursim</option>
+          <option value="tjeter">📌 Të tjera</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Shënim (opsional)</label>
+        <input class="field-input" id="txNote" placeholder="p.sh. Goma"/>
+      </div>
+      <button class="btn-primary" onclick="saveTx()">Ruaj</button>
+      <button class="btn-secondary" onclick="closeModal('txModal')">Anulo</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="loanModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="loanModalTitle">Shto Kredi / Borxh</div>
+    <div class="modal-body">
+      <div class="field-group">
+        <label class="field-label">Emri (p.sh. Raufi, Kredi Shtëpie)</label>
+        <input class="field-input" id="loanName" placeholder="Raufi"/>
+      </div>
+      <div class="field-row">
+        <div class="field-group">
+          <label class="field-label">Shuma Totale (ALL)</label>
+          <input class="field-input" id="loanTotal" type="number" inputmode="numeric" placeholder="0"/>
+        </div>
+        <div class="field-group">
+          <label class="field-label">E Paguar (ALL)</label>
+          <input class="field-input" id="loanPaid" type="number" inputmode="numeric" placeholder="0"/>
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field-group">
+          <label class="field-label">Kësti Mujor (ALL)</label>
+          <input class="field-input" id="loanMonthly" type="number" inputmode="numeric" placeholder="0"/>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Data e Pagesës</label>
+          <input class="field-input" id="loanDate" type="date"/>
+        </div>
+      </div>
+      <input type="hidden" id="loanEditId"/>
+      <button class="btn-primary" onclick="saveLoan()">Ruaj</button>
+      <button class="btn-secondary" onclick="closeModal('loanModal')">Anulo</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="savingModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="savingModalTitle">Shto Qëllim Kursimi</div>
+    <div class="modal-body">
+      <div class="field-group">
+        <label class="field-label">Emri i Qëllimit</label>
+        <input class="field-input" id="savName" placeholder="p.sh. Kursime Fëmijët"/>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Ikona</label>
+        <div class="icon-grid" id="savIconGrid"></div>
+        <input type="hidden" id="savIcon" value="🎯"/>
+      </div>
+      <div class="field-row">
+        <div class="field-group">
+          <label class="field-label">Qëllimi (ALL)</label>
+          <input class="field-input" id="savGoal" type="number" inputmode="numeric" placeholder="0"/>
+        </div>
+        <div class="field-group">
+          <label class="field-label">Kursyer tani (ALL)</label>
+          <input class="field-input" id="savCurrent" type="number" inputmode="numeric" placeholder="0"/>
+        </div>
+      </div>
+      <input type="hidden" id="savEditId"/>
+      <button class="btn-primary btn-green" onclick="saveSaving()">Ruaj</button>
+      <button class="btn-secondary" onclick="closeModal('savingModal')">Anulo</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="budgetModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Krijo Buxhet Kategorie</div>
+    <div class="modal-body">
+      <div class="field-group">
+        <label class="field-label">Kategoria</label>
+        <select class="field-input" id="budgetCat">
+          <option value="ushqim">🍽️ Ushqim & Pije</option>
+          <option value="qendra">🏢 Shpenzime Qendra</option>
+          <option value="makina">🚗 Makina</option>
+          <option value="karburant">⛽ Karburant</option>
+          <option value="fatura">💡 Fatura</option>
+          <option value="femije">🧸 Fëmijët</option>
+          <option value="shendet">💊 Shëndet</option>
+          <option value="beauty">💇 Beauty</option>
+          <option value="argetim">🎭 Argëtim</option>
+          <option value="tjeter">📌 Të tjera</option>
+        </select>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Limiti Mujor (ALL)</label>
+        <input class="field-input" id="budgetLimit" type="number" inputmode="numeric" placeholder="0"/>
+      </div>
+      <button class="btn-primary" onclick="saveBudget()">Ruaj</button>
+      <button class="btn-secondary" onclick="closeModal('budgetModal')">Anulo</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="incomeModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Ndrysho Të Ardhurat</div>
+    <div class="modal-body">
+      <div class="field-group">
+        <label class="field-label">Të ardhura mujore (ALL)</label>
+        <input class="field-input" id="incomeInput" type="number" inputmode="numeric"/>
+        <div style="font-size:11.5px;color:var(--text-dim);margin-top:6px;">Kjo shumë shtohet automatikisht si të ardhura në fillim të çdo muaji</div>
+      </div>
+      <button class="btn-primary" onclick="saveIncome()">Ruaj</button>
+      <button class="btn-secondary" onclick="closeModal('incomeModal')">Anulo</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="backupModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">💾 Backup & Rivendos</div>
+    <div class="modal-body">
+      <p style="font-size:13px;color:var(--text-dim);margin-bottom:16px;">Ruaj të dhënat tuaja me një nga metodat:</p>
+
+      <button class="btn-primary" style="margin-bottom:8px;" onclick="doDownloadBackup()">
+        📥 Shkarko si skedar JSON
+      </button>
+      <button class="btn-primary" style="background:var(--green);color:#000;margin-bottom:8px;" onclick="shareBackup()">
+        📤 Shpërnda / Share (WhatsApp, Email...)
+      </button>
+      <button class="btn-primary" style="background:var(--purple);margin-bottom:16px;" onclick="copyBackupText()">
+        📋 Kopjo tekstin (ngjit në Notes)
+      </button>
+
+      <div style="border-top:1px solid var(--border);padding-top:16px;margin-top:4px;">
+        <div class="field-label" style="margin-bottom:8px;">📂 Rivendos Backup — Ngjit JSON këtu:</div>
+        <textarea id="backupTextarea" class="field-input" rows="5"
+          style="font-size:11px;font-family:monospace;resize:vertical;display:block;"
+          placeholder="Ngjit këtu tekstin JSON të backup-it të mëparshëm..."></textarea>
+        <button class="btn-primary" style="background:var(--orange);margin-top:8px;" onclick="importBackup()">
+          ⬆️ Importo të dhënat
+        </button>
+      </div>
+
+      <button class="btn-secondary" onclick="closeModal('backupModal')">Mbyll</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="fabModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Çfarë doni të shtoni?</div>
+    <div class="modal-body" style="display:grid;gap:10px;padding-top:10px;">
+      <button class="btn-primary" onclick="closeModal('fabModal');openTxModal()">💸 Transaksion (Shpenzim/Ardhur)</button>
+      <button class="btn-primary" style="background:var(--orange);" onclick="closeModal('fabModal');openAddLoanModal()">🏦 Kredi / Borxh</button>
+      <button class="btn-primary btn-green" onclick="closeModal('fabModal');openAddSavingModal()">🎯 Qëllim Kursimi</button>
+      <button class="btn-secondary" onclick="closeModal('fabModal')">Anulo</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════ STATE ════════════════════════
+const MONTHS_AL = ['Janar','Shkurt','Mars','Prill','Maj','Qershor','Korrik','Gusht','Shtator','Tetor','Nëntor','Dhjetor'];
+const CAT_META = {
+  ushqim:{color:'#3ecf6e',icon:'🍽️',label:'Ushqim & Pije'},
+  qendra:{color:'#3b82f6',icon:'🏢',label:'Shpenzime Qendra'},
+  makina:{color:'#9ca3af',icon:'🚗',label:'Makina'},
+  karburant:{color:'#a78bfa',icon:'⛽',label:'Karburant'},
+  fatura:{color:'#60a5fa',icon:'💡',label:'Fatura'},
+  kredi:{color:'#f4d35e',icon:'🏠',label:'Kredi Shtëpie'},
+  kesti:{color:'#f97316',icon:'💳',label:'Kesti / Borxh'},
+  femije:{color:'#ec4899',icon:'🧸',label:'Fëmijët'},
+  shendet:{color:'#14b8a6',icon:'💊',label:'Shëndet'},
+  beauty:{color:'#f472b6',icon:'💇',label:'Beauty'},
+  argetim:{color:'#f59e0b',icon:'🎭',label:'Argëtim'},
+  kursim:{color:'#3ecf6e',icon:'🎯',label:'Kursim'},
+  tjeter:{color:'#ef4444',icon:'📌',label:'Të tjera'},
+};
+const SAVING_ICONS = ['🎯','🎓','🛡️','✈️','🏡','🚗','💍','👶','🎁','💰','🏖️','📱'];
+
+let state = {
+  baseIncome: 225000,
+  currentYear: new Date().getFullYear(),
+  currentMonth: new Date().getMonth(),
+  transactions: [],
+  loans: [],
+  savings: [],
+  budgets: [],
+  chartType: 'expense',
+};
+
+function save(){ localStorage.setItem('buxheti_v2', JSON.stringify(state)); }
+function load(){
+  const raw = localStorage.getItem('buxheti_v2');
+  if(raw){
+    try{ state = {...state, ...JSON.parse(raw)}; }catch(e){}
+  } else {
+    // seed example data matching the family's real numbers
+    const todayY = state.currentYear, todayM = state.currentMonth;
+    const mk = (d) => `${todayY}-${String(todayM+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    state.transactions = [
+      {id:uid(),type:'shpenzim',name:'Shenzime Shtepia',amount:2000,date:mk(6),cat:'ushqim',note:'',icon:'🍽️'},
+      {id:uid(),type:'shpenzim',name:'Shpenzime Qendra',amount:12000,date:mk(6),cat:'qendra',note:'',icon:'🏢'},
+      {id:uid(),type:'shpenzim',name:'Makina',amount:26000,date:mk(6),cat:'makina',note:'Goma',icon:'🚗'},
+      {id:uid(),type:'ardhur',name:'Makina',amount:30000,date:mk(6),cat:'tjeter',note:'aAmortizator',icon:'💰'},
+      {id:uid(),type:'shpenzim',name:'Karburant',amount:5000,date:mk(4),cat:'karburant',note:'',icon:'⛽'},
+      {id:uid(),type:'shpenzim',name:'Beauty',amount:900,date:mk(4),cat:'beauty',note:'',icon:'💇'},
+      {id:uid(),type:'ardhur',name:'Pagë',amount:225000,date:mk(1),cat:'tjeter',note:'',icon:'💰'},
+    ];
+    state.loans = [
+      {id:uid(),name:'Rina',total:400000,paid:400000,monthly:0,date:`${todayY}-05-05`},
+      {id:uid(),name:'Raufi',total:1040000,paid:400000,monthly:40000,date:`${todayY}-06-11`},
+    ];
+    state.savings = [
+      {id:uid(),name:'Kursime Extra Fëmijët',icon:'🧸',goal:30000,current:5000},
+      {id:uid(),name:'Kursime Ekstra',icon:'🎯',goal:120000,current:2000},
+    ];
+    state.budgets = [
+      {id:uid(),cat:'ushqim',limit:10000},
+      {id:uid(),cat:'qendra',limit:40000},
+    ];
+    save();
+  }
+}
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+function fmt(n){ return Math.round(n).toLocaleString('sq-AL')+' ALL'; }
+function fmtNum(n){ return Math.round(n).toLocaleString('sq-AL'); }
+
+// ════════════════════════ NAV ════════════════════════
+let currentTab = 'home';
+function switchTab(tab){
+  currentTab = tab;
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+tab).classList.add('active');
+  const navBtn = document.getElementById('nav-'+tab);
+  if(navBtn) navBtn.classList.add('active');
+  document.getElementById('fabBtn').style.display = tab==='settings' ? 'none':'flex';
+  renderAll();
+}
+
+function monthKey(y,m){ return `${y}-${String(m+1).padStart(2,'0')}`; }
+function curKey(){ return monthKey(state.currentYear, state.currentMonth); }
+function monthTxs(y,m){
+  const k = monthKey(y,m);
+  let txs = state.transactions.filter(t=>t.date && t.date.startsWith(k));
+  return txs;
+}
+function curTxs(){ return monthTxs(state.currentYear, state.currentMonth); }
+
+function renderAll(){
+  if(currentTab==='home') renderHome();
+  if(currentTab==='debt') renderDebt();
+  if(currentTab==='chart') renderChart();
+  if(currentTab==='planner') renderPlanner();
+  if(currentTab==='settings') renderSettings();
+}
+
+// ════════════════════════ HOME ════════════════════════
+function renderHome(){
+  const txs = curTxs();
+  const income = txs.filter(t=>t.type==='ardhur').reduce((s,t)=>s+t.amount,0);
+  const expenses = txs.filter(t=>t.type==='shpenzim').reduce((s,t)=>s+t.amount,0);
+  const balance = income - expenses;
+  document.getElementById('hBalance').textContent = fmt(balance);
+  document.getElementById('hIncome').textContent = fmt(income);
+  document.getElementById('hExpenses').textContent = fmt(expenses);
+
+  const search = (document.getElementById('searchInput').value||'').toLowerCase();
+  let filtered = txs;
+  if(search) filtered = txs.filter(t => t.name.toLowerCase().includes(search) || (t.note||'').toLowerCase().includes(search));
+  filtered = [...filtered].sort((a,b)=>b.date.localeCompare(a.date));
+
+  const el = document.getElementById('homeTxList');
+  if(!filtered.length){
+    el.innerHTML = '<div class="empty"><div class="empty-icon">💸</div><div class="empty-text">Nuk ka transaksione këtë muaj.<br>Shtyp + për të shtuar.</div></div>';
+    return;
+  }
+  const byDate = {};
+  filtered.forEach(t=>{ if(!byDate[t.date]) byDate[t.date]=[]; byDate[t.date].push(t); });
+  el.innerHTML = Object.entries(byDate).map(([date, items])=>{
+    const dayInc = items.filter(i=>i.type==='ardhur').reduce((s,i)=>s+i.amount,0);
+    const dayExp = items.filter(i=>i.type==='shpenzim').reduce((s,i)=>s+i.amount,0);
+    return `<div class="tx-day">
+      <div class="tx-day-hdr"><span>${date}</span>
+        <span class="tx-day-amts">
+          ${dayExp>0?`<span style="color:var(--red)">-${fmtNum(dayExp)}</span>`:''}
+          ${dayInc>0?`<span style="color:var(--green)">+${fmtNum(dayInc)}</span>`:''}
+        </span>
+      </div>
+      ${items.map(t=>{
+        const meta = CAT_META[t.cat]||{color:'#888',icon:'📌'};
+        return `<div class="tx-item">
+          <div class="tx-icon" style="background:${meta.color}22;color:${meta.color}">${t.icon||meta.icon}</div>
+          <div class="tx-info">
+            <div class="tx-name">${t.name}</div>
+            <div class="tx-sub">${t.note || (CAT_META[t.cat]?.label||'')}</div>
+          </div>
+          <div class="tx-amt ${t.type==='ardhur'?'income':'expense'}">${t.type==='ardhur'?'+':'-'}${fmtNum(t.amount)}</div>
+          <button class="tx-del" onclick="deleteTx('${t.id}')">×</button>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }).join('');
+}
+
+function deleteTx(id){
+  if(!confirm('Fshi këtë transaksion?')) return;
+  state.transactions = state.transactions.filter(t=>t.id!==id);
+  save(); renderAll(); toast('U fshi');
+}
+
+// ════════════════════════ DEBT ════════════════════════
+function renderDebt(){
+  const total = state.loans.reduce((s,l)=>s + Math.max(0, l.total - l.paid), 0);
+  document.getElementById('debtTotal').textContent = 'Borxhi Total: -' + fmt(total);
+  const paid = state.loans.reduce((s,l)=>s+l.paid,0);
+  const remaining = state.loans.reduce((s,l)=>s+Math.max(0,l.total-l.paid),0);
+  document.getElementById('lentVal').textContent = fmtNum(paid);
+  document.getElementById('borrowVal').textContent = fmtNum(remaining);
+  document.getElementById('lentCount').textContent = 'Paguar';
+  document.getElementById('borrowCount').textContent = state.loans.filter(l=>l.total>l.paid).length + ' Aktive';
+
+  const el = document.getElementById('loansList');
+  if(!state.loans.length){
+    el.innerHTML = '<div class="empty"><div class="empty-icon">🏦</div><div class="empty-text">Nuk ka kredi të shtuara</div></div>';
+    return;
+  }
+  el.innerHTML = state.loans.map(l=>{
+    const pct = l.total>0 ? Math.min(100, Math.round((l.paid/l.total)*100)) : 0;
+    const remaining = Math.max(0, l.total - l.paid);
+    const initial = l.name.charAt(0).toUpperCase();
+    return `<div class="debt-card">
+      <div class="debt-actions">
+        <button class="debt-icon-btn" onclick="openEditLoanModal('${l.id}')">✎</button>
+        <button class="debt-icon-btn" style="color:var(--red)" onclick="deleteLoan('${l.id}')">×</button>
+      </div>
+      <div class="debt-hdr">
+        <div class="debt-avatar">${initial}</div>
+        <div>
+          <div class="debt-name">${l.name}</div>
+          <div class="debt-meta">Këst: ${l.monthly?fmt(l.monthly)+'/muaj':'—'}${l.date?' · '+l.date:''}</div>
+        </div>
+        <div class="debt-amt">${fmt(remaining)}</div>
+      </div>
+      <div class="debt-prog-row"><span>${fmt(l.paid)} paguar</span><span>${pct}%</span></div>
+      <div class="debt-prog-track"><div class="debt-prog-fill" style="width:${pct}%"></div></div>
+      <div class="goal-add-row">
+        <input class="goal-add-inp" type="number" inputmode="numeric" placeholder="Shto pagesë..." id="loanPay_${l.id}"/>
+        <button class="goal-add-btn" onclick="payLoan('${l.id}')">+ Paguaj</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function payLoan(id){
+  const inp = document.getElementById('loanPay_'+id);
+  const amt = parseFloat(inp.value);
+  if(!amt || amt<=0){ toast('Shkruaj një shumë'); return; }
+  const l = state.loans.find(l=>l.id===id);
+  if(!l) return;
+  l.paid = (l.paid||0) + amt;
+  state.transactions.push({id:uid(),type:'shpenzim',name:'Pagesë: '+l.name,amount:amt,date:new Date().toISOString().slice(0,10),cat:'kesti',note:'',icon:'💳'});
+  save(); renderAll(); toast('U regjistrua pagesa'); inp.value='';
+}
+
+function deleteLoan(id){
+  if(!confirm('Fshi këtë kredi?')) return;
+  state.loans = state.loans.filter(l=>l.id!==id);
+  save(); renderAll(); toast('U fshi');
+}
+
+// ════════════════════════ CHART ════════════════════════
+function renderChart(){
+  document.getElementById('chartMonthLabel').textContent = curKey();
+  document.getElementById('chartTabExp').classList.toggle('active', state.chartType==='expense');
+  document.getElementById('chartTabInc').classList.toggle('active', state.chartType==='income');
+
+  // months strip - show current year months
+  const strip = document.getElementById('chartMonthsStrip');
+  strip.innerHTML = MONTHS_AL.map((m,i)=>{
+    const active = i===state.currentMonth;
+    return `<div class="cm-item ${active?'active':''}" onclick="jumpToMonth(${state.currentYear},${i})">
+      <div class="cm-year">${state.currentYear}</div><div class="cm-num">${i+1}</div></div>`;
+  }).join('');
+  setTimeout(()=>{
+    const activeEl = strip.querySelector('.active');
+    if(activeEl) activeEl.scrollIntoView({inline:'center', block:'nearest'});
+  },0);
+
+  const txs = curTxs().filter(t => t.type === (state.chartType==='expense'?'shpenzim':'ardhur'));
+  const total = txs.reduce((s,t)=>s+t.amount,0);
+  document.getElementById('donutTitle').textContent = (state.chartType==='expense'?'Total Shpenzime: ':'Total Të Ardhura: ') + fmt(total);
+
+  const byCat = {};
+  txs.forEach(t=>{ byCat[t.cat] = (byCat[t.cat]||0) + t.amount; });
+  const entries = Object.entries(byCat).sort((a,b)=>b[1]-a[1]);
+
+  drawDonut(entries, total);
+
+  const legend = document.getElementById('donutLegend');
+  if(!entries.length){
+    legend.innerHTML = '<div class="empty" style="padding:10px"><div class="empty-text">Nuk ka të dhëna për këtë muaj</div></div>';
+    return;
+  }
+  legend.innerHTML = entries.map(([cat,val])=>{
+    const meta = CAT_META[cat]||{color:'#888',label:cat};
+    const pct = total>0 ? Math.round((val/total)*100) : 0;
+    return `<div class="legend-row">
+      <div class="legend-left"><span class="dot" style="background:${meta.color}"></span>${meta.label}</div>
+      <span class="legend-pct" style="color:${meta.color}">${pct}%</span>
+    </div>`;
+  }).join('');
+}
+
+function drawDonut(entries, total){
+  const svg = document.getElementById('donutSvg');
+  const cx=110, cy=110, r=85, sw=28;
+  if(!entries.length || total===0){
+    svg.innerHTML = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="#2a2a2a" stroke-width="${sw}"/>`;
+    return;
+  }
+  let startAngle = -90;
+  let paths = '';
+  entries.forEach(([cat,val])=>{
+    const meta = CAT_META[cat]||{color:'#888'};
+    const angle = (val/total)*360;
+    const endAngle = startAngle + angle;
+    paths += arcPath(cx,cy,r,startAngle,endAngle,meta.color,sw);
+    startAngle = endAngle;
+  });
+  svg.innerHTML = paths;
+}
+function polarToCartesian(cx,cy,r,angleDeg){
+  const a = (angleDeg-90)*Math.PI/180;
+  return { x: cx + r*Math.cos(a), y: cy + r*Math.sin(a) };
+}
+function arcPath(cx,cy,r,startAngle,endAngle,color,sw){
+  const gap = endAngle-startAngle > 359.5 ? 0.5 : 0;
+  const s = polarToCartesian(cx,cy,r,startAngle);
+  const e = polarToCartesian(cx,cy,r,endAngle-gap);
+  const largeArc = (endAngle-startAngle) > 180 ? 1 : 0;
+  return `<path d="M ${s.x} ${s.y} A ${r} ${r} 0 ${largeArc} 1 ${e.x} ${e.y}" fill="none" stroke="${color}" stroke-width="${sw}" stroke-linecap="round"/>`;
+}
+
+function setChartType(type){ state.chartType = type; renderChart(); }
+function jumpToMonth(y,m){ state.currentYear=y; state.currentMonth=m; renderAll(); }
+
+// ════════════════════════ PLANNER ════════════════════════
+function renderPlanner(){
+  const txs = curTxs();
+  const spentByCat = {};
+  txs.filter(t=>t.type==='shpenzim').forEach(t=>{ spentByCat[t.cat] = (spentByCat[t.cat]||0)+t.amount; });
+
+  const bEl = document.getElementById('budgetRows');
+  if(!state.budgets.length){
+    bEl.innerHTML = '<div class="empty" style="padding:20px 0"><div class="empty-text">Nuk ka buxhete të krijuara</div></div>';
+  } else {
+    bEl.innerHTML = state.budgets.map(b=>{
+      const meta = CAT_META[b.cat]||{color:'#888',label:b.cat};
+      const spent = spentByCat[b.cat]||0;
+      const pct = b.limit>0 ? Math.min(100,Math.round((spent/b.limit)*100)) : 0;
+      return `<div class="prog-row">
+        <div class="prog-top"><span class="prog-name">${meta.icon} ${meta.label}</span>
+          <button class="debt-icon-btn" style="padding:0;color:var(--text-dim)" onclick="deleteBudget('${b.id}')">×</button>
+        </div>
+        <div class="prog-amt" style="margin-bottom:6px;">${fmtNum(spent)} nga ${fmtNum(b.limit)} ALL</div>
+        <div class="prog-track"><div class="prog-fill" style="width:${pct}%;background:${pct>=100?'var(--red)':meta.color}"></div></div>
+        <div class="prog-pct">${pct}%</div>
+      </div>`;
+    }).join('');
+  }
+
+  const gEl = document.getElementById('goalsList');
+  if(!state.savings.length){
+    gEl.innerHTML = '<div class="empty" style="padding:16px 0"><div class="empty-text">Nuk ka qëllime kursimi</div></div>';
+  } else {
+    gEl.innerHTML = state.savings.map(s=>{
+      const pct = s.goal>0 ? Math.min(100,Math.round((s.current/s.goal)*100)) : 0;
+      return `<div class="goal-card" style="flex-direction:column;align-items:stretch;">
+        <div style="display:flex;align-items:center;gap:12px;width:100%;">
+          <div class="goal-icon" style="background:#3ecf6e22;color:var(--green)">${s.icon||'🎯'}</div>
+          <div class="goal-info">
+            <div class="goal-name">${s.name}</div>
+            <div class="goal-track"><div class="goal-fill" style="width:${pct}%;background:var(--green)"></div></div>
+            <div class="goal-nums"><span>${fmtNum(s.current)} ALL</span><span>${pct}% nga ${fmtNum(s.goal)} ALL</span></div>
+          </div>
+          <button class="debt-icon-btn" onclick="openEditSavingModal('${s.id}')">✎</button>
+          <button class="debt-icon-btn" style="color:var(--red)" onclick="deleteSaving('${s.id}')">×</button>
+        </div>
+        <div class="goal-add-row">
+          <input class="goal-add-inp" type="number" inputmode="numeric" placeholder="Shto shumë..." id="savAdd_${s.id}"/>
+          <button class="goal-add-btn" onclick="addToSaving('${s.id}')">+ Shto</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  const lEl = document.getElementById('plannerLoansSummary');
+  if(!state.loans.length){
+    lEl.innerHTML = '<div class="empty" style="padding:12px 0"><div class="empty-text">Nuk ka kredi</div></div>';
+  } else {
+    const total = state.loans.reduce((s,l)=>s+Math.max(0,l.total-l.paid),0);
+    lEl.innerHTML = state.loans.map(l=>{
+      const remaining = Math.max(0,l.total-l.paid);
+      return `<div class="settings-row"><div><div class="settings-label">${l.name}</div><div class="settings-sub">${l.monthly?fmt(l.monthly)+'/muaj':''}</div></div><span class="settings-val" style="color:var(--orange)">${fmt(remaining)}</span></div>`;
+    }).join('') + `<div class="settings-row"><div class="settings-label" style="font-weight:700">Total Mbetur</div><span class="settings-val" style="color:var(--red)">${fmt(total)}</span></div>`;
+  }
+}
+
+function addToSaving(id){
+  const inp = document.getElementById('savAdd_'+id);
+  const amt = parseFloat(inp.value);
+  if(!amt||amt<=0){ toast('Shkruaj një shumë'); return; }
+  const s = state.savings.find(s=>s.id===id);
+  if(!s) return;
+  s.current = (s.current||0)+amt;
+  state.transactions.push({id:uid(),type:'shpenzim',name:'Kursim: '+s.name,amount:amt,date:new Date().toISOString().slice(0,10),cat:'kursim',note:'',icon:s.icon||'🎯'});
+  save(); renderAll(); toast('U shtua në '+s.name); inp.value='';
+}
+function deleteSaving(id){
+  if(!confirm('Fshi këtë qëllim?')) return;
+  state.savings = state.savings.filter(s=>s.id!==id);
+  save(); renderAll(); toast('U fshi');
+}
+function deleteBudget(id){
+  state.budgets = state.budgets.filter(b=>b.id!==id);
+  save(); renderAll(); toast('U fshi');
+}
+
+// ════════════════════════ SETTINGS ════════════════════════
+function renderSettings(){
+  const keys = [...new Set(state.transactions.map(t=>t.date.slice(0,7)))].sort().reverse();
+  const el = document.getElementById('monthsWithData');
+  if(!keys.length){
+    el.innerHTML = '<div class="settings-row"><div class="settings-label" style="color:var(--text-dim)">Nuk ka të dhëna ende</div></div>';
+    return;
+  }
+  el.innerHTML = keys.slice(0,12).map(k=>{
+    const [y,m]=k.split('-');
+    const txs = state.transactions.filter(t=>t.date.startsWith(k));
+    const spent = txs.filter(t=>t.type==='shpenzim').reduce((s,t)=>s+t.amount,0);
+    return `<div class="settings-row" onclick="jumpToMonth(${parseInt(y)},${parseInt(m)-1});switchTab('home')" style="cursor:pointer;">
+      <div><div class="settings-label">${MONTHS_AL[parseInt(m)-1]} ${y}</div><div class="settings-sub">${txs.length} transaksione</div></div>
+      <span style="color:var(--red);font-weight:600;">${fmt(spent)}</span>
+    </div>`;
+  }).join('');
+}
+
+function exportData(){
+  openModal('backupModal');
+}
+function doDownloadBackup(){
+  try {
+    const json = JSON.stringify(state, null, 2);
+    const blob = new Blob([json], {type:'application/json'});
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'buxheti_backup_' + curKey() + '.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    toast('✅ Backup u shkarkua');
+  } catch(e) {
+    toast('❌ Download dështoi - kopjo tekstin');
+  }
+}
+function copyBackupText(){
+  const json = JSON.stringify(state, null, 2);
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(json).then(()=> toast('✅ U kopjua! Ngjit në Notes/Email')).catch(()=> fallbackCopy(json));
+  } else {
+    fallbackCopy(json);
+  }
+}
+function fallbackCopy(text){
+  const ta = document.getElementById('backupTextarea');
+  ta.value = text;
+  ta.style.display = 'block';
+  ta.select();
+  try { document.execCommand('copy'); toast('✅ U kopjua! Ngjit në Notes/Email'); } catch(e) { toast('Zgjidh gjithë tekstin dhe kopjo'); }
+}
+function shareBackup(){
+  const json = JSON.stringify(state, null, 2);
+  if(navigator.share){
+    navigator.share({ title:'Buxheti Backup', text: json }).catch(()=>{});
+  } else {
+    copyBackupText();
+  }
+}
+function importBackup(){
+  const text = document.getElementById('backupTextarea').value.trim();
+  if(!text){ toast('Ngjit të dhënat JSON këtu'); return; }
+  try {
+    const imported = JSON.parse(text);
+    if(!imported.transactions){ toast('Format i gabuar'); return; }
+    Object.assign(state, imported);
+    save(); closeModal('backupModal'); renderAll();
+    toast('✅ Të dhënat u importuan!');
+  } catch(e) {
+    toast('❌ Format i gabuar JSON');
+  }
+}
+function confirmReset(){
+  if(!confirm('Jeni i sigurt? Të gjitha të dhënat do të fshihen.')) return;
+  if(!confirm('Veprimi nuk mund të zhbëhet. Konfirmo.')) return;
+  localStorage.removeItem('buxheti_v2');
+  location.reload();
+}
+
+// ════════════════════════ MONTH MODAL ════════════════════════
+let tempYear = new Date().getFullYear();
+function openMonthModal(){ tempYear = state.currentYear; renderMonthGrid(); openModal('monthModal'); }
+function renderMonthGrid(){
+  document.getElementById('yearDisplay').textContent = tempYear;
+  const keysWithData = new Set(state.transactions.map(t=>t.date.slice(0,7)));
+  document.getElementById('monthGrid').innerHTML = MONTHS_AL.map((m,i)=>{
+    const k = monthKey(tempYear,i);
+    const isActive = tempYear===state.currentYear && i===state.currentMonth;
+    const hasData = keysWithData.has(k);
+    return `<button class="month-opt ${isActive?'active':''} ${hasData?'has-data':''}" onclick="selectMonth(${i})">${m}</button>`;
+  }).join('');
+}
+function changeYear(d){ tempYear+=d; renderMonthGrid(); }
+function selectMonth(m){ state.currentYear=tempYear; state.currentMonth=m; closeModal('monthModal'); renderAll(); }
+
+// ════════════════════════ MODAL HELPERS ════════════════════════
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(o=>{
+  o.addEventListener('click', e=>{ if(e.target===o) o.classList.remove('open'); });
+});
+function openFAB(){ openModal('fabModal'); }
+
+// TX MODAL
+let txType = 'shpenzim';
+function openTxModal(){
+  txType='shpenzim';
+  document.getElementById('txName').value='';
+  document.getElementById('txAmount').value='';
+  document.getElementById('txDate').value = new Date().toISOString().slice(0,10);
+  document.getElementById('txNote').value='';
+  document.getElementById('txCat').value='ushqim';
+  document.querySelectorAll('#txTypeChips .chip').forEach((c,i)=>{
+    c.classList.toggle('selected', i===0);
+    c.classList.toggle('expense-sel', i===0);
+    c.classList.toggle('income-sel', i===1);
+  });
+  openModal('txModal');
+}
+function selectTxType(type, el){
+  txType = type;
+  document.querySelectorAll('#txTypeChips .chip').forEach(c=>{c.classList.remove('selected');c.classList.remove('expense-sel');c.classList.remove('income-sel');});
+  el.classList.add('selected');
+  el.classList.add(type==='shpenzim'?'expense-sel':'income-sel');
+}
+function saveTx(){
+  const name = document.getElementById('txName').value.trim();
+  const amount = parseFloat(document.getElementById('txAmount').value);
+  const date = document.getElementById('txDate').value;
+  const cat = document.getElementById('txCat').value;
+  const note = document.getElementById('txNote').value.trim();
+  if(!name){ toast('Shkruaj emrin'); return; }
+  if(!amount||amount<=0){ toast('Shkruaj shumën'); return; }
+  if(!date){ toast('Zgjidh datën'); return; }
+  const meta = CAT_META[cat];
+  state.transactions.push({id:uid(),type:txType,name,amount,date,cat,note,icon:meta?meta.icon:'📌'});
+  save(); closeModal('txModal');
+  // jump view to that month
+  const [y,m] = date.split('-');
+  state.currentYear = parseInt(y); state.currentMonth = parseInt(m)-1;
+  renderAll();
+  toast(txType==='ardhur' ? '💰 U regjistrua' : '💸 U regjistrua');
+}
+
+// LOAN MODAL
+function openAddLoanModal(){
+  ['loanName','loanTotal','loanPaid','loanMonthly','loanDate'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('loanEditId').value='';
+  document.getElementById('loanModalTitle').textContent='Shto Kredi / Borxh';
+  openModal('loanModal');
+}
+function openEditLoanModal(id){
+  const l = state.loans.find(l=>l.id===id);
+  if(!l) return;
+  document.getElementById('loanName').value=l.name;
+  document.getElementById('loanTotal').value=l.total;
+  document.getElementById('loanPaid').value=l.paid;
+  document.getElementById('loanMonthly').value=l.monthly||'';
+  document.getElementById('loanDate').value=l.date||'';
+  document.getElementById('loanEditId').value=id;
+  document.getElementById('loanModalTitle').textContent='Ndrysho Kredinë';
+  openModal('loanModal');
+}
+function saveLoan(){
+  const name = document.getElementById('loanName').value.trim();
+  const total = parseFloat(document.getElementById('loanTotal').value)||0;
+  const paid = parseFloat(document.getElementById('loanPaid').value)||0;
+  const monthly = parseFloat(document.getElementById('loanMonthly').value)||0;
+  const date = document.getElementById('loanDate').value;
+  const editId = document.getElementById('loanEditId').value;
+  if(!name){ toast('Shkruaj emrin'); return; }
+  if(editId){
+    const l = state.loans.find(l=>l.id===editId);
+    if(l) Object.assign(l,{name,total,paid,monthly,date});
+  } else {
+    state.loans.push({id:uid(),name,total,paid,monthly,date});
+  }
+  save(); closeModal('loanModal'); renderAll();
+  toast(editId?'U përditësua':'U shtua');
+}
+
+// SAVING MODAL
+function renderSavIconGrid(selected){
+  document.getElementById('savIconGrid').innerHTML = SAVING_ICONS.map(ic=>
+    `<div class="icon-opt ${ic===selected?'selected':''}" onclick="selectSavIcon('${ic}',this)">${ic}</div>`
+  ).join('');
+}
+function selectSavIcon(ic, el){
+  document.getElementById('savIcon').value = ic;
+  document.querySelectorAll('#savIconGrid .icon-opt').forEach(o=>o.classList.remove('selected'));
+  el.classList.add('selected');
+}
+function openAddSavingModal(){
+  document.getElementById('savName').value='';
+  document.getElementById('savGoal').value='';
+  document.getElementById('savCurrent').value='';
+  document.getElementById('savEditId').value='';
+  document.getElementById('savIcon').value='🎯';
+  renderSavIconGrid('🎯');
+  document.getElementById('savingModalTitle').textContent='Shto Qëllim Kursimi';
+  openModal('savingModal');
+}
+function openEditSavingModal(id){
+  const s = state.savings.find(s=>s.id===id);
+  if(!s) return;
+  document.getElementById('savName').value=s.name;
+  document.getElementById('savGoal').value=s.goal;
+  document.getElementById('savCurrent').value=s.current;
+  document.getElementById('savEditId').value=id;
+  document.getElementById('savIcon').value=s.icon||'🎯';
+  renderSavIconGrid(s.icon||'🎯');
+  document.getElementById('savingModalTitle').textContent='Ndrysho Qëllimin';
+  openModal('savingModal');
+}
+function saveSaving(){
+  const name = document.getElementById('savName').value.trim();
+  const icon = document.getElementById('savIcon').value || '🎯';
+  const goal = parseFloat(document.getElementById('savGoal').value)||0;
+  const current = parseFloat(document.getElementById('savCurrent').value)||0;
+  const editId = document.getElementById('savEditId').value;
+  if(!name){ toast('Shkruaj emrin'); return; }
+  if(editId){
+    const s = state.savings.find(s=>s.id===editId);
+    if(s) Object.assign(s,{name,icon,goal,current});
+  } else {
+    state.savings.push({id:uid(),name,icon,goal,current});
+  }
+  save(); closeModal('savingModal'); renderAll();
+  toast(editId?'U përditësua':'U shtua');
+}
+
+// BUDGET MODAL
+function openAddBudgetModal(){
+  document.getElementById('budgetCat').value='ushqim';
+  document.getElementById('budgetLimit').value='';
+  openModal('budgetModal');
+}
+function saveBudget(){
+  const cat = document.getElementById('budgetCat').value;
+  const limit = parseFloat(document.getElementById('budgetLimit').value)||0;
+  if(!limit){ toast('Shkruaj limitin'); return; }
+  const existing = state.budgets.find(b=>b.cat===cat);
+  if(existing) existing.limit = limit;
+  else state.budgets.push({id:uid(),cat,limit});
+  save(); closeModal('budgetModal'); renderAll();
+  toast('Buxheti u ruajt');
+}
+
+// INCOME MODAL
+function openIncomeModal(){
+  document.getElementById('incomeInput').value = state.baseIncome;
+  openModal('incomeModal');
+}
+function saveIncome(){
+  const inc = parseFloat(document.getElementById('incomeInput').value);
+  if(inc>0) state.baseIncome = inc;
+  save(); closeModal('incomeModal'); renderAll();
+  toast('U përditësua');
+}
+
+// ════════════════════════ TOAST ════════════════════════
+function toast(msg){
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(()=>el.classList.remove('show'), 2200);
+}
+
+// ════════════════════════ SW ════════════════════════
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('./sw.js').catch(()=>{});
+}
+
+// ════════════════════════ INIT ════════════════════════
+load();
+renderAll();
+</script>
+</body>
+</html>
